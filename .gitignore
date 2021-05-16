@@ -1,4 +1,5 @@
+__pycache__/*
 .idea/*
 venv/*
-*.pkl
-*.INI
+old_scripts/*
+user_data/*
