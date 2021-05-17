@@ -135,7 +135,7 @@ while True:
     else:
         print(f"\n{TextColors.FAIL}Invalid input! Please enter one of the above two choices{TextColors.ENDC}")
 
-print("\n-->\tAttempting to book appointment (every 3 seconds till 80 attempts)", end="")
+print(f"\n-->\tAttempting to book appointment {TextColors.WARNING}(every 3 seconds for next 4 minutes, i.e., total 80 attempts){TextColors.ENDC}", end="")
 
 attempts = 0
 

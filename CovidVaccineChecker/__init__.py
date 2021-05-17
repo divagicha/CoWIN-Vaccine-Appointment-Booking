@@ -503,7 +503,7 @@ class CoWINAPI:
 
                     try:
                         appointment_id = response.json()['appointment_confirmation_no']
-                        print(f"\n{TextColors.SUCCESS}[+]{TextColors.ENDC} SUCCESS: '{centre['name']}, {centre['address']}' centre booked for {self.appointment_date}")
+                        print(f"\n{TextColors.SUCCESS}[+]{TextColors.ENDC} SUCCESS: '{centre['name']}, {centre['address']}' centre successfully booked for {self.appointment_date} for selected beneficiaries")
                         print(f"\nAppointment Confirmation Number: {appointment_id}")
                         appointment_booked_flag = True
                         break
