@@ -66,7 +66,7 @@ This project requires **Python (3.6 or higher)** to be installed on the user sys
 3. Alternatively, if you don't have Git CLI you can directly get the project's zip file by going over to link [CoWIN-Vaccine-Appointment-Booking](https://github.com/DivAgicha/CoWIN-Vaccine-Appointment-Booking), and extract the contents to desired location
 4. Open shell / command-prompt and change the working directory to "CoWIN-Vaccine-Appointment-Booking"
 	```sh
-	cd {path_to_CoWIN-Vaccine-Appointment-Booking_directory}
+	cd "path_to_CoWIN-Vaccine-Appointment-Booking_directory"
 	```
 5. Install all the required python dependencies
 	```sh
