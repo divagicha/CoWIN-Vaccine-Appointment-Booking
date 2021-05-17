@@ -3,3 +3,4 @@ __pycache__/*
 venv/*
 old_scripts/*
 user_data/*
+captcha/*
