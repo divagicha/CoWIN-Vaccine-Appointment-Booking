@@ -212,7 +212,7 @@ class CoWINAPI:
 
         if date.strip() != "":
             try:
-                self.appointment_date = dt.datetime.strptime(date, '%d-%m-%Y')
+                self.appointment_date = dt.datetime.strptime(date, '%d-%m-%Y').strftime('%d-%m-%Y')
             except ValueError:
                 self.appointment_date = (dt.datetime.today()).strftime("%d-%m-%Y")
                 print(f"\n{TextColors.FAIL}Incorrect date format, should have been dd-mm-yyyy. Defaulted to today's date '{self.appointment_date}'...{TextColors.ENDC}")
@@ -235,7 +235,7 @@ class CoWINAPI:
 
         if date.strip() != "":
             try:
-                self.appointment_date = dt.datetime.strptime(date, '%d-%m-%Y')
+                self.appointment_date = dt.datetime.strptime(date, '%d-%m-%Y').strftime('%d-%m-%Y')
             except ValueError:
                 self.appointment_date = (dt.datetime.today()).strftime("%d-%m-%Y")
                 print(f"\n{TextColors.FAIL}Incorrect date format, should have been dd-mm-yyyy. Defaulted to today's date '{self.appointment_date}'...{TextColors.ENDC}")
@@ -481,7 +481,7 @@ class CoWINAPI:
             print(f"\ntrying centre '{centre['name']}'\t{TextColors.BOLD}{TextColors.WARNING}(Min Age Limit: {centre['min_age_limit']}){TextColors.ENDC}...", end=" ")
 
             dummy_centre_check = False
-            # dummy_centre_check = 'gdmc hos' in centre['name'].lower()
+            dummy_centre_check = 'gdmc hos' in centre['name'].lower()
 
             if self.isValidCentre(centre, min_age_limit) or dummy_centre_check:
                 print(f"{TextColors.BOLD}{TextColors.WARNING}BOOKING{TextColors.ENDC}")
