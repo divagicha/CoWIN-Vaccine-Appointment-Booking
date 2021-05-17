@@ -5,13 +5,17 @@ import time
 from CovidVaccineChecker import TextColors, CoWINAPI
 
 
-"""
------------------------------------------------------------------------------
------------------------------- MAIN CODE START ------------------------------
------------------------------------------------------------------------------
-"""
-
 os.system("color FF")                                   # to get screen colors when running script on shell / CMD
+
+print("""
+  .oooooo.             oooooo   oooooo     oooo ooooo ooooo      ooo            .o.       ooooooooo.   ooooo 
+ d8P'  `Y8b             `888.    `888.     .8'  `888' `888b.     `8'           .888.      `888   `Y88. `888' 
+888           .ooooo.    `888.   .8888.   .8'    888   8 `88b.    8           .8"888.      888   .d88'  888  
+888          d88' `88b    `888  .8'`888. .8'     888   8   `88b.  8          .8' `888.     888ooo88P'   888  
+888          888   888     `888.8'  `888.8'      888   8     `88b.8         .88ooo8888.    888          888  
+`88b    ooo  888   888      `888'    `888'       888   8       `888        .8'     `888.   888          888  
+ `Y8bood8P'  `Y8bod8P'       `8'      `8'       o888o o8o        `8       o88o     o8888o o888o        o888o 
+""")
 
 mobile = input("\n-->\tEnter mobile: ")
 
