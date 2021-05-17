@@ -103,7 +103,7 @@ class CoWINAPI:
         }
 
         with open(user_config_file, 'x') as json_file:
-            json_file.write(json.dumps(self.user_data))
+            json_file.write(json.dumps(self.user_data, indent=4))
 
 
     def update_user_config(self, list_of_keys_to_update, value_list, user_config_file):
@@ -112,7 +112,7 @@ class CoWINAPI:
             self.user_data[key] = value_list[idx]
 
         with open(user_config_file, 'w') as json_file:
-            json_file.write(json.dumps(self.user_data))
+            json_file.write(json.dumps(self.user_data, indent=4))
 
         print("DONE")
 
@@ -135,6 +135,8 @@ class CoWINAPI:
         self.institution_preferences = self.user_data['institution_preferences']
         self.slot_preference = self.user_data['slot_preference']
         self.appointment_date = self.user_data['appointment_date']
+
+        self.auth_headers['Authorization'] = f'Bearer {self.token}'
 
 
     def create_new_user_config(self, user_config_file):
@@ -430,7 +432,7 @@ class CoWINAPI:
 
 
     def generate_captcha(self, user_config_file):
-        print("\n========================================= GETTING CAPTCHA =========================================")
+        print(f"\n{TextColors.HEADER}========================================= GETTING CAPTCHA ========================================={TextColors.ENDC}")
 
         while True:
             response = requests.request("POST", self.captcha_url, headers=self.auth_headers)
@@ -446,6 +448,29 @@ class CoWINAPI:
                     time.sleep(1)
 
 
+    def isValidCentre(self, centre, min_age_limit):
+        isValidPincode, isValidInstitute, isValidMinAgeSelected = False, False, False
+
+        if self.search_criteria == 1:
+            isValidPincode = True if centre['pincode'] == self.pincode_preferences[0] else False
+        elif self.search_criteria == 2:
+            isValidPincode = True if centre['pincode'] in self.pincode_preferences else False
+
+        if len(self.institution_preferences) > 0:
+            for institue in self.institution_preferences:
+                isValidInstitute = True if institue in centre['name'].lower() else False
+                if isValidInstitute:
+                    break
+        else:
+            isValidInstitute = True             # because in case of no preference, institute name doesn't matter
+
+        isValidMinAgeSelected = True if centre['min_age_limit'] == min_age_limit else False
+
+        isValidCentre = isValidPincode and isValidInstitute and isValidMinAgeSelected
+
+        return isValidCentre
+
+
     def schedule_appointment(self, all_centres, ref_ids, dose_number, min_age_limit, user_config_file):
         appointment_booked_flag = False
         appointment_id = None
@@ -455,11 +480,10 @@ class CoWINAPI:
         for centre in all_centres:
             print(f"\ntrying centre '{centre['name']}'\t{TextColors.BOLD}{TextColors.WARNING}(Min Age Limit: {centre['min_age_limit']}){TextColors.ENDC}...", end=" ")
 
-            centre_is_rishikesh = centre['pincode'] == 249201 and 'rajkiya m' in centre['name'].lower() and centre['min_age_limit'] == 18
-            centre_is_bhaniyawala = centre['pincode'] == 248140 and 'ganpati wedding' in centre['name'].lower() and centre['min_age_limit'] == 18
-            # centre_is_bhaniyawala = 'office laksar' in centre['name'].lower() and centre['min_age_limit'] == 18
+            dummy_centre_check = False
+            # dummy_centre_check = 'gdmc hos' in centre['name'].lower()
 
-            if centre_is_rishikesh or centre_is_bhaniyawala:
+            if self.isValidCentre(centre, min_age_limit) or dummy_centre_check:
                 print(f"{TextColors.BOLD}{TextColors.WARNING}BOOKING{TextColors.ENDC}")
                 if centre['available_capacity'] >= len(ref_ids):
                     captcha = self.generate_captcha(user_config_file)
@@ -489,6 +513,6 @@ class CoWINAPI:
                         else:
                             print(f"\n{TextColors.FAIL}FAILED ATTEMPT (message: {e}){TextColors.ENDC} (response: {response.text})")
                 else:
-                    print(f"{TextColors.FAIL}FAILED: Slots available are less than the number of beneficiaries selected{TextColors.ENDC}")
+                    print(f"{TextColors.FAIL}FAILED: Vaccine shots available are less than the number of beneficiaries selected{TextColors.ENDC}")
 
         return appointment_booked_flag, appointment_id

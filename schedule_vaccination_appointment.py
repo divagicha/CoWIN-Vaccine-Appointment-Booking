@@ -20,6 +20,9 @@ cowinAPI = CoWINAPI(mobile)
 if not os.path.exists(os.path.join(cowinAPI.BASE_PROJECT_DIR, "user_data/")):
     os.makedirs(os.path.join(cowinAPI.BASE_PROJECT_DIR, "user_data/"))
 
+if not os.path.exists(os.path.join(cowinAPI.BASE_PROJECT_DIR, "captcha/")):
+    os.makedirs(os.path.join(cowinAPI.BASE_PROJECT_DIR, "captcha/"))
+
 user_config_file = os.path.join(cowinAPI.BASE_PROJECT_DIR, "user_data/user_config_" + mobile + ".json")
 
 if os.path.exists(user_config_file):
@@ -54,7 +57,7 @@ all_centres = cowinAPI.findCentresBySearchCriteria()
 
 if len(all_centres) == 0:
     print(f"\n{TextColors.FAIL}FAILED: All centres are fully booked for the selected appointment date. "
-          f"Try running the script again after changing date or district.{TextColors.ENDC}")
+          f"Try running the script again after changing date, district or pincode.{TextColors.ENDC}")
     exit(1)
 
 centres_list = [{"Name": centre['name'], "District": centre['district_name'], "Pincode": centre['pincode'], "Vaccine Name": centre['vaccine'],
