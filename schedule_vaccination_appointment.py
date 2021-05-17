@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 # import json
 import time
@@ -17,7 +18,16 @@ print("""
  `Y8bood8P'  `Y8bod8P'       `8'      `8'       o888o o8o        `8       o88o     o8888o o888o        o888o 
 """)
 
-mobile = input("\n-->\tEnter mobile: ")
+mobile_number_pattern = re.compile("[7-9][0-9]{9}")
+
+while True:
+    mobile = input("\n-->\tEnter mobile: ")
+
+    if mobile is not None and mobile.strip() != "" and mobile_number_pattern.match(mobile.strip()):
+        mobile = mobile.strip()
+        break
+    else:
+        print(f"\n{TextColors.FAIL}Invalid input! Please enter correct mobile number (format: 10-digit number starting with either 7,8 or 9){TextColors.ENDC}")
 
 cowinAPI = CoWINAPI(mobile)
 
@@ -30,25 +40,28 @@ if not os.path.exists(os.path.join(cowinAPI.BASE_PROJECT_DIR, "captcha/")):
 user_config_file = os.path.join(cowinAPI.BASE_PROJECT_DIR, "user_data/user_config_" + mobile + ".json")
 
 if os.path.exists(user_config_file):
-    print(f"\nUser configuration file found for '{mobile}'! Listing details...")
+    print(f"\nUser configuration file found for '{mobile}'! Listing details...\n")
 
     cowinAPI.displayConfigFileData(user_config_file)
 
     while True:
         answer = input(f"\n-->\tReady to go? {TextColors.WARNING}(Continue with existing configuration (y) / "
-                       f"Create new configuration (n) / Change only appointment date (c) / Quit (q)){TextColors.ENDC}: ")
+                       f"Create new configuration (n) / Change appointment date (c) / Change search criteria (s) / Quit (q)){TextColors.ENDC}: ")
 
         if answer.lower().strip() == 'y':
             cowinAPI.use_existing_user_config(user_config_file)
             break
-        elif answer.lower().strip() == 'c':
-            cowinAPI.changeAppointmentDate(user_config_file)
-            break
         elif answer.lower().strip() == 'n':
             cowinAPI.create_new_user_config(user_config_file)
             break
+        elif answer.lower().strip() == 'c':
+            cowinAPI.changeAppointmentDate(user_config_file)
+            break
+        elif answer.lower().strip() == 's':
+            cowinAPI.changeSearchCriteria(user_config_file)
+            break
         elif answer.lower().strip() == 'q':
-            print(f"\n{TextColors.WARNING}Exiting program...{TextColors.ENDC}")
+            print(f"\nExiting program...")
             exit(0)
         else:
             print(f"\n{TextColors.FAIL}Invalid input!{TextColors.ENDC}")
@@ -60,17 +73,34 @@ else:
 all_centres = cowinAPI.findCentresBySearchCriteria()
 
 if len(all_centres) == 0:
-    print(f"\n{TextColors.FAIL}FAILED: All centres are fully booked for the selected appointment date. "
-          f"Try running the script again after changing date, district or pincode.{TextColors.ENDC}")
-    exit(1)
+    print(f"{TextColors.FAIL}No Centre Found{TextColors.ENDC} (Either all centres are fully booked for the selected appointment date or slots aren't opened yet. "
+          f"You can also try running the script again after changing date, search criteria, district or pincode)")
 
-centres_list = [{"Name": centre['name'], "District": centre['district_name'], "Pincode": centre['pincode'], "Vaccine Name": centre['vaccine'],
-                 "Fee Type": centre['fee_type'], "Min Age": centre['min_age_limit'], "Available Capacity": centre['available_capacity'],
-                 "Slots": "\n".join(centre['slots'])} for centre in all_centres]
+    while True:
+        print(f"\n-->\t{TextColors.UNDERLINE}{TextColors.BOLD}Note{TextColors.ENDC}: {TextColors.WARNING}Continue with existing configuration "
+              f"only if you are sure that slots are gonna open in few minutes!{TextColors.ENDC}")
+        answer = input(f"\nEnter choice {TextColors.WARNING}(Continue with existing configuration (y) / "
+                       f"Change appointment date (c) / Change search criteria (s)){TextColors.ENDC}: ")
 
-cowinAPI.display_table(centres_list)
+        if answer.lower().strip() == 'y':
+            cowinAPI.use_existing_user_config(user_config_file)
+            break
+        elif answer.lower().strip() == 'c':
+            cowinAPI.changeAppointmentDate(user_config_file, load_values_from_existing_config_first=False)
+            break
+        elif answer.lower().strip() == 's':
+            cowinAPI.changeSearchCriteria(user_config_file, load_values_from_existing_config_first=False)
+            break
+        else:
+            print(f"\n{TextColors.FAIL}Invalid input!{TextColors.ENDC}")
+else:
+    centres_list = [{"Name": centre['name'], "District": centre['district_name'], "Pincode": centre['pincode'], "Vaccine Name": centre['vaccine'],
+                     "Fee Type": centre['fee_type'], "Min Age": centre['min_age_limit'], "Available Capacity": centre['available_capacity'],
+                     "Slots": "\n".join(centre['slots'])} for centre in all_centres]
 
-print(f"\n{TextColors.BLACKONGREY}Total Centres Found: {len(all_centres)}{TextColors.ENDC}")
+    cowinAPI.display_table(centres_list)
+
+    print(f"\n{TextColors.BLACKONGREY}Total Centres Found: {len(all_centres)}{TextColors.ENDC}")
 
 while True:
     print(f"\n-->\tGetting beneficiaries registered with mobile number '{mobile}'\n")
@@ -93,10 +123,15 @@ cowinAPI.display_table(beneficiaries_list)
 
 print(f"\n{TextColors.BLACKONGREY}Total Beneficiaries Found: {len(beneficiaries)}{TextColors.ENDC}")
 
-ids_input = input(f"\nEnter comma-separated index of beneficiaries to schedule appointment for {TextColors.WARNING}(Enter '0' to select all){TextColors.ENDC}: ")
+ids_input = input(f"\nEnter comma-separated index of beneficiaries to schedule appointment for {TextColors.WARNING}(Enter '0' to select all or 'q' to quit and try after sometime){TextColors.ENDC}: ")
 
 while True:
     assert ids_input is not None and ids_input != ""
+
+    if ids_input.strip().lower() == 'q':
+        print("\nExiting program...")
+        exit(0)
+
     reference_ids = ids_input.replace(" ", "").split(",")
 
     if not isinstance(reference_ids[0], int):
@@ -111,7 +146,7 @@ while True:
 
         if len(reference_ids) == 0:
             print(f"\n{TextColors.FAIL}Please enter correct indexes to proceed to booking{TextColors.ENDC}")
-            ids_input = input(f"\nEnter comma-separated index of beneficiaries to schedule appointment for {TextColors.WARNING}(Enter '0' to select all){TextColors.ENDC}: ")
+            ids_input = input(f"\nEnter comma-separated index of beneficiaries to schedule appointment for {TextColors.WARNING}(Enter '0' to select all or 'q' to quit and try after sometime){TextColors.ENDC}: ")
         else:
             break
 
@@ -161,7 +196,11 @@ while True:
             sys.stdout.flush()
             time.sleep(1)
             all_centres = cowinAPI.findCentresBySearchCriteria()
-            print(f"\n{TextColors.BLACKONGREY}Total Centres Found: {len(all_centres)}{TextColors.ENDC}", end="")
+            if len(all_centres) > 0:
+                print(f"{TextColors.BLACKONGREY}Total Centres Found: {len(all_centres)}{TextColors.ENDC}", end="")
+            else:
+                print(f"{TextColors.FAIL}No Centre Found{TextColors.ENDC} (Either all centres are fully booked for the selected appointment date or slots aren't opened yet. "
+                      f"You can also try running the script again after changing date, search criteria, district or pincode)", end="")
             time.sleep(1)
         else:
             break
