@@ -29,7 +29,7 @@
 	</a>
 	<h3 align="center">CoWIN Vaccine Appointment Booking</h3>
 	<p align="center">
-		Script to check vaccine availability at a centre on a mentioned date, and book it as soon as it slot gets available
+		Script to check vaccine availability at a centre for a mentioned date, and book it as soon as the slot gets available
 		<br />
 		<a href="https://github.com/DivAgicha/CoWIN-Vaccine-Appointment-Booking"><strong>Explore the docs »</strong></a>
 		<br />
@@ -58,7 +58,7 @@ This project requires **Python (3.6 or higher)** to be installed on the user sys
 <!-- INSTALLATION -->
 ### Installation
 
-1. Install Python (3.6 or higher) and Git CLI (OPTIONAL) on the system by searching for respective setups for your operaing system on Google
+1. Install **Python (3.6 or higher)** and **Git CLI (OPTIONAL)** on the system by searching for respective setups for your operaing system on Google
 2. Clone the repo
 	```sh
 	git clone https://github.com/DivAgicha/CoWIN-Vaccine-Appointment-Booking.git
