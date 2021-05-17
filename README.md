@@ -29,7 +29,7 @@
 	</a>
 	<h3 align="center">CoWIN Vaccine Appointment Booking</h3>
 	<p align="center">
-		Script to check vaccine availability at a centre for a mentioned date, and book it as soon as the slot gets available
+		Script to automate COVID-19 vaccination slot booking on India's Co-WIN Platform
 		<br />
 		<a href="https://github.com/DivAgicha/CoWIN-Vaccine-Appointment-Booking"><strong>Explore the docs »</strong></a>
 		<br />
