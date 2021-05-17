@@ -161,7 +161,7 @@ while True:
             sys.stdout.flush()
             time.sleep(1)
             all_centres = cowinAPI.findCentresBySearchCriteria()
-            print(f"{TextColors.BLACKONGREY}Total Centres Found: {len(all_centres)}{TextColors.ENDC}", end="")
+            print(f"\n{TextColors.BLACKONGREY}Total Centres Found: {len(all_centres)}{TextColors.ENDC}", end="")
             time.sleep(1)
         else:
             break
@@ -170,4 +170,4 @@ while True:
         exit(1)
 
 if not appointment_booked_flag:
-    print(f"\n{TextColors.FAIL}FAILED: Appointment could not be booked{TextColors.ENDC}")
+    print(f"\n{TextColors.FAIL}FAILED: Appointment could not be booked, as no valid slot found to be available. Please try again after 1 minute.{TextColors.ENDC}")

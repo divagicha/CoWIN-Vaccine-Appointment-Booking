@@ -481,7 +481,7 @@ class CoWINAPI:
             print(f"\ntrying centre '{centre['name']}'\t{TextColors.BOLD}{TextColors.WARNING}(Min Age Limit: {centre['min_age_limit']}){TextColors.ENDC}...", end=" ")
 
             dummy_centre_check = False
-            dummy_centre_check = 'gdmc hos' in centre['name'].lower()
+            # dummy_centre_check = 'gdmc hos' in centre['name'].lower()
 
             if self.isValidCentre(centre, min_age_limit) or dummy_centre_check:
                 print(f"{TextColors.BOLD}{TextColors.WARNING}BOOKING{TextColors.ENDC}")
