@@ -133,6 +133,7 @@ while True:
     if min_age_limit is not None or min_age_limit.strip() != "":
         min_age_limit = int(min_age_limit)
         if min_age_limit in [1, 2]:
+            min_age_limit = 18 if min_age_limit == 1 else 45
             break
         else:
             print(f"\n{TextColors.FAIL}Invalid input! Please enter one of the above two choices{TextColors.ENDC}")
