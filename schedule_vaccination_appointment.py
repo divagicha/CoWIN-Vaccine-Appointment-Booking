@@ -1,14 +1,16 @@
+import json
 import os
 import re
 import sys
 # import json
 import time
+import datetime as dt
 from CovidVaccineChecker import TextColors, CoWINAPI
 
 
 os.system("color FF")                                   # to get screen colors when running script on shell / CMD
 
-print("""
+print(f"""{TextColors.WARNING}
   .oooooo.             oooooo   oooooo     oooo ooooo ooooo      ooo            .o.       ooooooooo.   ooooo 
  d8P'  `Y8b             `888.    `888.     .8'  `888' `888b.     `8'           .888.      `888   `Y88. `888' 
 888           .ooooo.    `888.   .8888.   .8'    888   8 `88b.    8           .8"888.      888   .d88'  888  
@@ -16,9 +18,9 @@ print("""
 888          888   888     `888.8'  `888.8'      888   8     `88b.8         .88ooo8888.    888          888  
 `88b    ooo  888   888      `888'    `888'       888   8       `888        .8'     `888.   888          888  
  `Y8bood8P'  `Y8bod8P'       `8'      `8'       o888o o8o        `8       o88o     o8888o o888o        o888o 
-""")
+{TextColors.ENDC}""")
 
-mobile_number_pattern = re.compile("[7-9][0-9]{9}")
+mobile_number_pattern = re.compile("^[7-9][0-9]{9}$")
 
 while True:
     mobile = input("\n-->\tEnter mobile: ")
@@ -27,7 +29,7 @@ while True:
         mobile = mobile.strip()
         break
     else:
-        print(f"\n{TextColors.FAIL}Invalid input! Please enter correct mobile number (format: 10-digit number starting with either 7,8 or 9){TextColors.ENDC}")
+        print(f"\n{TextColors.FAIL}Invalid input! Please enter correct mobile number (rule: 10-digit number starting with either 7,8 or 9){TextColors.ENDC}")
 
 cowinAPI = CoWINAPI(mobile)
 
@@ -46,7 +48,8 @@ if os.path.exists(user_config_file):
 
     while True:
         answer = input(f"\n-->\tReady to go? {TextColors.WARNING}(Continue with existing configuration (y) / "
-                       f"Create new configuration (n) / Change appointment date (c) / Change search criteria (s) / Quit (q)){TextColors.ENDC}: ")
+                       f"Create new configuration (n) / Change appointment date (c) / \n"
+                       f"\t\t\t\t  Change search criteria (s) / Change slot preference (t) / Quit (q)){TextColors.ENDC}: ")
 
         if answer.lower().strip() == 'y':
             cowinAPI.use_existing_user_config(user_config_file)
@@ -59,6 +62,9 @@ if os.path.exists(user_config_file):
             break
         elif answer.lower().strip() == 's':
             cowinAPI.changeSearchCriteria(user_config_file)
+            break
+        elif answer.lower().strip() == 't':
+            cowinAPI.changeSlotPreference(user_config_file)
             break
         elif answer.lower().strip() == 'q':
             print(f"\nExiting program...")
@@ -77,10 +83,10 @@ if len(all_centres) == 0:
           f"You can also try running the script again after changing date, search criteria, district or pincode)")
 
     while True:
-        print(f"\n-->\t{TextColors.UNDERLINE}{TextColors.BOLD}Note{TextColors.ENDC}: {TextColors.WARNING}Continue with existing configuration "
-              f"only if you are sure that slots are gonna open in few minutes!{TextColors.ENDC}")
-        answer = input(f"\nEnter choice {TextColors.WARNING}(Continue with existing configuration (y) / "
-                       f"Change appointment date (c) / Change search criteria (s)){TextColors.ENDC}: ")
+        answer = input(f"\n-->\tEnter choice {TextColors.WARNING}(Continue with existing configuration (y) / "
+                       f"Change appointment date (c) / Change search criteria (s)){TextColors.ENDC}\n"
+                       f"{TextColors.BOLD}Note: Continue with existing configuration only if you are "
+                       f"sure that slots are gonna open in few minutes!{TextColors.ENDC}: ")
 
         if answer.lower().strip() == 'y':
             cowinAPI.use_existing_user_config(user_config_file)
@@ -112,27 +118,46 @@ while True:
     else:
         cowinAPI.refreshToken(user_config_file)
 
+if not beneficiaries or len(beneficiaries) == 0:
+    print(f"{TextColors.FAIL}No beneficiaries have been added in this account! Kindly add one or more (max. 4) "
+          f"beneficiaries first by going to link https://selfregistration.cowin.gov.in/ and then run the script again.{TextColors.ENDC}")
+    exit(1)
+
+current_year = dt.datetime.today().year
 beneficiaries_list = [{"Ref. ID": beneficiary['beneficiary_reference_id'],
                        "Name": beneficiary['name'],
                        "Gender": beneficiary['gender'],
-                       "Vaccination Status": beneficiary['vaccination_status'],
-                       "Appointments": cowinAPI.get_appointment_details(beneficiary['appointments'][0]) if len(beneficiary['appointments']) > 0 else "-"}
+                       "Age": current_year - int(beneficiary['birth_year']),
+                       "Vaccination Status": cowinAPI.get_vaccination_status_details(beneficiary['vaccination_status'], beneficiary['dose1_date'], beneficiary['dose2_date']),
+                       "Appointment Details (Dose 1)": cowinAPI.get_appointment_details(beneficiary['appointments'][0]) if len(beneficiary['appointments']) > 0 else "-",
+                       "Appointment Details (Dose 2)": cowinAPI.get_appointment_details(beneficiary['appointments'][1]) if len(beneficiary['appointments']) > 1 else "-"}
                       for beneficiary in beneficiaries]
 
 cowinAPI.display_table(beneficiaries_list)
 
+# print(json.dumps(beneficiaries, indent=4))
+
 print(f"\n{TextColors.BLACKONGREY}Total Beneficiaries Found: {len(beneficiaries)}{TextColors.ENDC}")
 
-ids_input = input(f"\nEnter comma-separated index of beneficiaries to schedule appointment for {TextColors.WARNING}(Enter '0' to select all or 'q' to quit and try after sometime){TextColors.ENDC}: ")
-
 while True:
-    assert ids_input is not None and ids_input != ""
+    ids_input = input(f"\nEnter comma-separated index of beneficiaries to schedule appointment for {TextColors.WARNING}(Enter '0' to select all or 'q' to quit and try after sometime){TextColors.ENDC}: ")
+
+    if ids_input is None or ids_input.strip() == "":
+        print(f"\n{TextColors.FAIL}Please enter correct indexes to proceed to booking{TextColors.ENDC}")
+        continue
 
     if ids_input.strip().lower() == 'q':
         print("\nExiting program...")
         exit(0)
 
     reference_ids = ids_input.replace(" ", "").split(",")
+
+    if ids_input.strip().lower() != '0':
+        beneficiary_index_pattern = re.compile("^[1-4]$")
+        areValidIds = [bool(beneficiary_index_pattern.match(id)) for id in reference_ids]
+        if False in areValidIds:
+            print(f"\n{TextColors.FAIL}Please enter correct indexes to proceed to booking{TextColors.ENDC}")
+            continue
 
     if not isinstance(reference_ids[0], int):
         reference_ids = [int(id) for id in reference_ids]
@@ -146,7 +171,6 @@ while True:
 
         if len(reference_ids) == 0:
             print(f"\n{TextColors.FAIL}Please enter correct indexes to proceed to booking{TextColors.ENDC}")
-            ids_input = input(f"\nEnter comma-separated index of beneficiaries to schedule appointment for {TextColors.WARNING}(Enter '0' to select all or 'q' to quit and try after sometime){TextColors.ENDC}: ")
         else:
             break
 

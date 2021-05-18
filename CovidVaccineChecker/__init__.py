@@ -1,4 +1,5 @@
 import os
+import re
 # import sys
 import json
 import time
@@ -105,7 +106,9 @@ class CoWINAPI:
                 elif key == 'district_id':
                     key_value_list.append([f"{TextColors.WARNING}{key.replace('_', ' ').title()}{TextColors.ENDC}", f"{value}\t({user_data['district_name']})"])
                 elif key == 'search_criteria':
-                    key_value_list.append([f"{TextColors.WARNING}{key.replace('_', ' ').title()}{TextColors.ENDC}", f"{value}\t(1: by Pincode, 2: by District)"])
+                    pincode = user_data['pincode_preferences'][0]
+                    key_value_list.append([f"{TextColors.WARNING}{key.replace('_', ' ').title()}{TextColors.ENDC}",
+                                           f"Search by {f'Pincode ({pincode})' if user_data['search_criteria'] == 1 else 'District'}"])
                 else:
                     key_value_list.append([f"{TextColors.WARNING}{key.replace('_', ' ').title()}{TextColors.ENDC}", value])
 
@@ -114,6 +117,8 @@ class CoWINAPI:
 
     def save_user_config(self, user_config_file):
         try:
+            if os.path.exists(user_config_file):
+                os.remove(user_config_file)
             self.user_data = {
                 "mobile": self.mobile,
                 "token": self.token,
@@ -128,7 +133,7 @@ class CoWINAPI:
                 "appointment_date": self.appointment_date
             }
 
-            with open(user_config_file, 'x') as json_file:
+            with open(user_config_file, 'w') as json_file:
                 json_file.write(json.dumps(self.user_data, indent=4))
         except Exception as e:
             if os.path.exists(user_config_file):
@@ -189,7 +194,7 @@ class CoWINAPI:
 
         print(f"\nhashed OTP: {hashed_otp}")
 
-        print("\n-->\tValidating 'OTP' and 'txnId' to get token")
+        print("\n-->\tValidating 'OTP' to get token")
 
         self.token = self.confirmOTP(hashed_otp, txnId)
 
@@ -205,7 +210,9 @@ class CoWINAPI:
                 self.refreshToken(user_config_file, save_token_in_file=False)
 
         while True:
-            self.search_criteria = input("\nEnter search criteria ('1' to search by pincode, '2' to search by district): ")
+            self.search_criteria = input(f"\n-->\tEnter search criteria {TextColors.WARNING}('1' to search by pincode, '2' to search by district){TextColors.ENDC}\n"
+                                         f"{TextColors.BOLD}Note: in case of search by pincode, first pincode will be selected "
+                                         f"from your pincode preferences:{TextColors.ENDC} ")
 
             if self.search_criteria is not None or self.search_criteria.strip() != "":
                 self.search_criteria = int(self.search_criteria)
@@ -219,10 +226,11 @@ class CoWINAPI:
         print(f"\n{TextColors.WARNING}[+]{TextColors.ENDC} {TextColors.UNDERLINE}{TextColors.BOLD}TIP FOR NEXT INPUT:{TextColors.ENDC} "
               f"{TextColors.BOLD}If you prefer institute with name 'Swami Ram Hospital (Garhi Cantt.)' & 'Institute Name 2' type a part of their name in lowercase letters"
               f", for example, 'ram hospit, institute name' or 'swami ram, name 2', etc. (comma-separated, without quotes){TextColors.ENDC}")
-        self.institution_preferences = input("\nEnter small name for institution preference (comma-separated in case of multiple): ")
+        institution_preferences = input(f"\nEnter small name for institution preference "
+                                        f"{TextColors.WARNING}(comma-separated in case of multiple){TextColors.ENDC}: ")
 
-        if self.institution_preferences is not None and self.institution_preferences.strip() != "":
-            self.institution_preferences = self.institution_preferences.strip().replace(', ', ',').lower().split(",")
+        if institution_preferences is not None and institution_preferences.strip() != "":
+            self.institution_preferences = institution_preferences.strip().replace(', ', ',').lower().split(",")
 
         slot_options = ["09:00AM-11:00AM", "11:00AM-01:00PM", "01:00PM-03:00PM", "03:00PM-05:00PM"]
 
@@ -230,16 +238,21 @@ class CoWINAPI:
             self.slot_preference = input(f"\nEnter slot preference ID (SELECT ONE) {TextColors.WARNING}[ID '1': 9AM to 11AM, ID '2': 11AM to 1PM, ID '3': 1PM to 3PM, ID '4': 3PM to 5PM]{TextColors.ENDC}: ")
 
             if self.slot_preference is not None or self.slot_preference.strip() != "":
-                self.slot_preference = int(self.slot_preference)
-                if 0 < self.slot_preference < 5:
-                    self.slot_preference = slot_options[self.slot_preference - 1]
-                    break
-                else:
+                try:
+                    self.slot_preference = int(self.slot_preference)
+                    if 0 < self.slot_preference < 5:
+                        self.slot_preference = slot_options[self.slot_preference - 1]
+                        break
+                    else:
+                        print(f"\n{TextColors.FAIL}Invalid input! Please enter one of the above four IDs{TextColors.ENDC}")
+                except Exception:
                     print(f"\n{TextColors.FAIL}Invalid input! Please enter one of the above four IDs{TextColors.ENDC}")
             else:
                 print(f"\n{TextColors.FAIL}Invalid input! Please enter one of the above four IDs{TextColors.ENDC}")
 
-        date = input("\nEnter appointment date to check available slots for that date (Format: dd-mm-yyyy, defaults to today if nothing is entered): ")
+        date = input("\n-->\tEnter appointment date to check available slots for that date "
+                     f"{TextColors.WARNING}(Format: dd-mm-yyyy, defaults to today if nothing "
+                     f"or incorrect date format is entered){TextColors.ENDC}: ")
 
         if date.strip() != "":
             try:
@@ -251,7 +264,7 @@ class CoWINAPI:
             self.appointment_date = (dt.datetime.today()).strftime("%d-%m-%Y")
             print(f"\n{TextColors.FAIL}No date entered. Defaulted to today's date '{self.appointment_date}'...{TextColors.ENDC}")
 
-        print(f"\n-->Saving user configuration in file '{user_config_file.split('/')[-1]}'... ", end="")
+        print(f"\n-->\tSaving user configuration in file '{user_config_file.split('/')[-1]}'... ")
 
         self.save_user_config(user_config_file)
 
@@ -260,8 +273,9 @@ class CoWINAPI:
         if load_values_from_existing_config_first:
             self.use_existing_user_config(user_config_file)        # to initialise all other variables too, before calling update_user_config()
 
-        date = input("\nEnter appointment date to check available slots for that date "
-                     "(Format: dd-mm-yyyy, defaults to today if nothing is entered): ")
+        date = input("\n-->\tEnter appointment date to check available slots for that date "
+                     f"{TextColors.WARNING}(Format: dd-mm-yyyy, defaults to today if nothing "
+                     f"or incorrect date format is entered){TextColors.ENDC}: ")
 
         if date.strip() != "":
             try:
@@ -281,7 +295,9 @@ class CoWINAPI:
             self.use_existing_user_config(user_config_file)        # to initialise all other variables too, before calling update_user_config()
 
         while True:
-            self.search_criteria = input("\nEnter search criteria ('1' to search by pincode, '2' to search by district): ")
+            self.search_criteria = input(f"\n-->\tEnter search criteria {TextColors.WARNING}('1' to search by pincode, '2' to search by district){TextColors.ENDC}\n"
+                                         f"{TextColors.BOLD}Note: in case of search by pincode, first pincode will be selected "
+                                         f"from your pincode preferences:{TextColors.ENDC} ")
 
             if self.search_criteria is not None or self.search_criteria.strip() != "":
                 self.search_criteria = int(self.search_criteria)
@@ -293,6 +309,32 @@ class CoWINAPI:
                 print(f"\n{TextColors.FAIL}Invalid input! Please enter one of the above two choices{TextColors.ENDC}")
 
         self.update_user_config(['search_criteria'], [self.search_criteria], user_config_file)
+
+
+    def changeSlotPreference(self, user_config_file, load_values_from_existing_config_first = True):
+        if load_values_from_existing_config_first:
+            self.use_existing_user_config(user_config_file)        # to initialise all other variables too, before calling update_user_config()
+
+        slot_options = ["09:00AM-11:00AM", "11:00AM-01:00PM", "01:00PM-03:00PM", "03:00PM-05:00PM"]
+
+        while True:
+            self.slot_preference = input(f"\nEnter slot preference ID (SELECT ONE) {TextColors.WARNING}[ID '1': 9AM to 11AM, "
+                                         f"ID '2': 11AM to 1PM, ID '3': 1PM to 3PM, ID '4': 3PM to 5PM]{TextColors.ENDC}: ")
+
+            if self.slot_preference is not None or self.slot_preference.strip() != "":
+                try:
+                    self.slot_preference = int(self.slot_preference)
+                    if 0 < self.slot_preference < 5:
+                        self.slot_preference = slot_options[self.slot_preference - 1]
+                        break
+                    else:
+                        print(f"\n{TextColors.FAIL}Invalid input! Please enter one of the above four IDs{TextColors.ENDC}")
+                except Exception:
+                    print(f"\n{TextColors.FAIL}Invalid input! Please enter one of the above four IDs{TextColors.ENDC}")
+            else:
+                print(f"\n{TextColors.FAIL}Invalid input! Please enter one of the above four IDs{TextColors.ENDC}")
+
+        self.update_user_config(['slot_preference'], [self.slot_preference], user_config_file)
 
 
     def refreshToken(self, user_config_file, save_token_in_file=True):
@@ -314,7 +356,7 @@ class CoWINAPI:
 
         print(f"\nhashed OTP: {hashed_otp}")
 
-        print("\n-->\tConfirming OTP and 'txnId' to get token")
+        print("\n-->\tConfirming OTP to get token")
 
         self.token = self.confirmOTP(hashed_otp, txnId)
 
@@ -374,9 +416,15 @@ class CoWINAPI:
             try:
                 self.display_table(response.json()['states'])
 
-                state_id = input("\nEnter state ID: ")
-                state_id = int(state_id)
-                state_name = [state['state_name'] for state in response.json()['states'] if state['state_id'] == state_id][0]
+                while True:
+                    state_id = input("\nEnter state ID: ")
+                    ids_list = [str(state['state_id']) for state in response.json()['states']]
+                    if state_id not in ids_list:
+                        print(f"\n{TextColors.FAIL}Invalid input! Please enter correct state ID{TextColors.ENDC}")
+                        continue
+                    state_id = int(state_id)
+                    state_name = [state['state_name'] for state in response.json()['states'] if state['state_id'] == state_id][0]
+                    break
 
                 print(f"\n{TextColors.WARNING}[+]{TextColors.ENDC} Getting list of all districis in '{state_name}'\n")
                 response = requests.request("GET", self.getDistricts_url + "/" + str(state_id), headers=self.headers)
@@ -384,27 +432,38 @@ class CoWINAPI:
                 if response.status_code == 200:
                     self.display_table(response.json()['districts'])
 
-                    district_id = input("\nEnter district ID: ")
-                    district_id = int(district_id)
-                    district_name = [district['district_name'] for district in response.json()['districts'] if district['district_id'] == district_id][0]
+                    while True:
+                        district_id = input("\nEnter district ID: ")
+                        ids_list = [str(district['district_id']) for district in response.json()['districts']]
+                        if district_id not in ids_list:
+                            print(f"\n{TextColors.FAIL}Invalid input! Please enter correct district ID{TextColors.ENDC}")
+                            continue
+                        district_id = int(district_id)
+                        district_name = [district['district_name'] for district in response.json()['districts'] if district['district_id'] == district_id][0]
+                        break
                 else:
                     print(f"\n{TextColors.FAIL}FAILED ATTEMPT (message: Error getting districts list){TextColors.ENDC} (response: {response.text})")
                     exit(1)
             except Exception as e:
-                print(f"\n{TextColors}FAILED ATTEMPT (message: {e}){TextColors.ENDC}")
+                print(f"\n{TextColors.FAIL}FAILED ATTEMPT (message: {e}){TextColors.ENDC}")
                 exit(1)
         else:
             raise Exception(f"\n{TextColors.FAIL}FAILED ATTEMPT (message: Error getting states list){TextColors.ENDC} (response: {response.text})")
 
+        pincode_pattern = re.compile("^[1-9][0-9]{5}$")
         while True:
-            pincode_preferences = input("\nEnter pincode preference (comma-separated in case of multiple): ")
+            pincode_preferences = input(f"\nEnter pincode preference(s) {TextColors.WARNING}(comma-separated in case of multiple){TextColors.ENDC}: ")
 
             if pincode_preferences is not None and pincode_preferences.strip() != "":
-                pincode_preferences = pincode_preferences.strip().replace(" ", "").split(",")
-                pincode_preferences = [int(pincode) for pincode in pincode_preferences]
-                break
+                pincode_list = pincode_preferences.strip().replace(" ", "").split(",")
+                areValidPincodes = [bool(pincode_pattern.match(pincode)) for pincode in pincode_list]
+                if False not in areValidPincodes:
+                    pincode_preferences = [int(pincode) for pincode in pincode_list]
+                    break
+                else:
+                    print(f"\n{TextColors.FAIL}Invalid input! Please enter correct pincode (rule: 6-digit number not starting with zero and no spaces in between){TextColors.ENDC}")
             else:
-                print(f"\n{TextColors.FAIL}Invalid input! Pincode can't be empty{TextColors.ENDC}")
+                print(f"\n{TextColors.FAIL}Invalid input! Please enter correct pincode (rule: 6-digit number not starting with zero and no spaces in between){TextColors.ENDC}")
 
         return state_id, state_name, district_id, district_name, pincode_preferences
 
@@ -468,10 +527,22 @@ class CoWINAPI:
             beneficiaries = response.json()['beneficiaries']
         except Exception as e:
             if "unauthenticated access" not in response.text.lower():
-                print(f"{TextColors.FAIL}{TextColors.FAIL}FAILED ATTEMPT (message: {e}){TextColors.ENDC}{TextColors.ENDC} (response: {response.text})")
+                print(f"{TextColors.FAIL}{TextColors.FAIL}FAILED ATTEMPT (message: {e}){TextColors.ENDC}{TextColors.ENDC} (response: {response.text})\n")
             beneficiaries = None
 
         return beneficiaries, response.status_code
+
+
+    @staticmethod
+    def get_vaccination_status_details(vaccination_status, dose1_date, dose2_date):
+        if vaccination_status.lower() == "not vaccinated":
+            vaccination_status_details = vaccination_status
+        elif vaccination_status.lower() == "partially vaccinated":
+            vaccination_status_details = f"{vaccination_status}\n(Dose 1: {dose1_date})\n(Dose 2:     -     )"
+        else:
+            vaccination_status_details = f"{vaccination_status}\n(Dose 1: {dose1_date})\n(Dose 2: {dose2_date})"
+
+        return vaccination_status_details
 
 
     @staticmethod
@@ -538,7 +609,7 @@ class CoWINAPI:
             print(f"\ntrying centre '{centre['name']}'\t{TextColors.BOLD}{TextColors.WARNING}(Min Age Limit: {centre['min_age_limit']}){TextColors.ENDC}...", end=" ")
 
             dummy_centre_check = False
-            # dummy_centre_check = 'gdmc hos' in centre['name'].lower()
+            # dummy_centre_check = 'max super' in centre['name'].lower()
 
             if self.isValidCentre(centre, min_age_limit) or dummy_centre_check:
                 print(f"{TextColors.BOLD}{TextColors.WARNING}BOOKING{TextColors.ENDC}")
