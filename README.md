@@ -44,7 +44,22 @@
 <!-- ABOUT -->
 ## About The Project
 
-As it's a difficult task to schedule an appointment for CoVid-Vaccine with only limited slots available for each day, this script automates the whole process of checking availability of slots every 3 seconds and also books it as soon as it becomes available. Just enter your preferences initially **(pincode, district, centre preference, slot timing, etc.)** and just let this script do the rest.
+As it's a difficult task to schedule an appointment for CoVid-Vaccine with only limited slots available for each day, this script automates the whole process of checking availability of slots every 3 seconds and also books it as soon as it becomes available. Just do a **one-time configuration** by entering your preferences initially **(pincode, district, centre preference, slot timing, etc.)** and let this script do the rest.
+
+
+
+### Customizable Options in the Program
+
+1. State ID / Name
+2. District ID / Name
+3. Pincode(s) in the district
+4. Search Criteria *(whether to search centres by Pincode or District)*
+5. Centre Preferences *(which centre to book among all the available centres)*
+6. Slot Preference *(whether to select a random slot from among the available slots for a particular centre or ask the user to manually select the slot once a valid centre is found)*
+7. Appointment Date *(date for which the centres have to be checked for availability and scheduling thereafter)*
+8. Beneficiaries *(which beneficiaries to schedule appointment for, among all the registered benficiaries(max. 4) in the account)*
+9. Dose Number *(which dose(1 or 2) appointment to schedule, for the selected beneficiaries)*
+10. Min Age Limit *(minimum age limit of the selected beneficiaries. All selected beneficiaries must belong to the same minimum age group, either 18+ or 45+)*
 
 
 
@@ -72,7 +87,7 @@ This project requires **Python (3.6 or higher)** to be installed on the user sys
 	```sh
 	pip install -r requirements.txt
 	```
-6. Run the script to enter your details and book a vaccine slot
+6. Run the script to enter your details and book a vaccination slot
 	```sh
 	python schedule_vaccination_appointment.py
 	```

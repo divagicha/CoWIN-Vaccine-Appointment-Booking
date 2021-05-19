@@ -1,4 +1,3 @@
-import json
 import os
 import re
 import sys
@@ -84,7 +83,7 @@ while True:
     if response_statusCode == 200:
         break
     else:
-        cowinAPI.refreshToken(user_config_file)
+        cowinAPI.generateUserToken(user_config_file, refresh_token=True)
 
 if not beneficiaries or len(beneficiaries) == 0:
     print(f"{TextColors.FAIL}No beneficiaries have been added in this account! Kindly add one or more (max. 4) "
@@ -118,7 +117,7 @@ while True:
         print("\nExiting program...")
         exit(0)
 
-    reference_ids = ids_input.replace(" ", "").split(",")
+    reference_ids = ids_input.strip().replace(" ", "").split(",")
 
     if ids_input.strip().lower() != '0':
         beneficiary_index_pattern = re.compile("^[1-4]$")
@@ -143,10 +142,10 @@ while True:
             break
 
 while True:
-    dose_number = input(f"\nEnter dose number for selected beneficiaries {TextColors.WARNING}(SELECT ONE) ('1' for dose 1, '2' for dose 2){TextColors.ENDC}: ")
+    dose_number = input(f"\nEnter dose number for selected beneficiaries {TextColors.WARNING}(SELECT ONE) ['1' for Dose 1, '2' for Dose 2]{TextColors.ENDC}: ")
 
     if dose_number is not None or dose_number.strip() != "":
-        dose_number = int(dose_number)
+        dose_number = int(dose_number.strip())
         if dose_number in [1, 2]:
             break
         else:
@@ -155,10 +154,10 @@ while True:
         print(f"\n{TextColors.FAIL}Invalid input! Please enter one of the above two choices{TextColors.ENDC}")
 
 while True:
-    min_age_limit = input(f"\nEnter min age limit for selected beneficiaries {TextColors.WARNING}(SELECT ONE) ('1' for 18+, '2' for 45+){TextColors.ENDC}: ")
+    min_age_limit = input(f"\nEnter min age limit for selected beneficiaries {TextColors.WARNING}(SELECT ONE) ['1' for 18+, '2' for 45+]{TextColors.ENDC}: ")
 
     if min_age_limit is not None or min_age_limit.strip() != "":
-        min_age_limit = int(min_age_limit)
+        min_age_limit = int(min_age_limit.strip())
         if min_age_limit in [1, 2]:
             min_age_limit = 18 if min_age_limit == 1 else 45
             break
@@ -170,8 +169,9 @@ while True:
 print(f"\n-->\tAttempting to book appointment {TextColors.WARNING}(every 3 seconds for next 4 minutes, i.e., total 80 attempts)"
       f"{TextColors.ENDC}")
 
-input(f"\n{TextColors.BOLD}Note: keep an eye on the screen when the process starts, as when a valid centre"
-      f" gets available you will be asked to enter a captcha to book and confirm the appointment{TextColors.ENDC}"
+input(f"\n{TextColors.BOLD}Note: keep an eye on the screen when the process starts, as when a valid centre "
+      f"gets available you will be asked to enter {TextColors.WARNING}captcha{TextColors.ENDC} {TextColors.BOLD}and select "
+      f"{TextColors.WARNING}time slot{TextColors.ENDC} {TextColors.BOLD}to book and confirm the appointment{TextColors.ENDC}"
       f"\n\nPress 'Enter' to continue...")
 
 all_centres = cowinAPI.findCentresBySearchCriteria()
@@ -187,15 +187,15 @@ if len(all_centres) == 0:
 
         if answer.lower().strip() == 'y':
             # cowinAPI.use_existing_user_config(user_config_file)
-            print(f"\n{TextColors.WARNING}[+]{TextColors} Continuing with existing configuration", end="")
+            print(f"\n{TextColors.WARNING}[+]{TextColors.ENDC} Continuing with existing configuration", end="")
             break
         elif answer.lower().strip() == 'c':
             cowinAPI.changeAppointmentDate(user_config_file, load_values_from_existing_config_first=False)
-            print(f"\n{TextColors.WARNING}[+]{TextColors} Appointment date changed successfully", end="")
+            print(f"\n{TextColors.WARNING}[+]{TextColors.ENDC} Appointment date changed successfully", end="")
             break
         elif answer.lower().strip() == 's':
             cowinAPI.changeSearchCriteria(user_config_file, load_values_from_existing_config_first=False)
-            print(f"\n{TextColors.WARNING}[+]{TextColors} Search criteria changed successfully", end="")
+            print(f"\n{TextColors.WARNING}[+]{TextColors.ENDC} Search criteria changed successfully", end="")
             break
         else:
             print(f"\n{TextColors.FAIL}Invalid input! Please enter a valid option to continue{TextColors.ENDC}")

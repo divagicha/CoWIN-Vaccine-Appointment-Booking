@@ -3,6 +3,7 @@ import re
 # import sys
 import json
 import time
+import random
 import requests
 import tabulate
 import datetime as dt
@@ -110,6 +111,8 @@ class CoWINAPI:
                     pincode = user_data['pincode_preferences'][0]
                     key_value_list.append([f"{TextColors.WARNING}{key.replace('_', ' ').title()}{TextColors.ENDC}",
                                            f"Search by {f'Pincode ({pincode})' if user_data['search_criteria'] == 1 else 'District'}"])
+                elif key == 'slot_preference':
+                    key_value_list.append([f"{TextColors.WARNING}{key.replace('_', ' ').title()}{TextColors.ENDC}", "Select random slot" if user_data['slot_preference'] == 1 else "Enter manually when a valid centre is found"])
                 else:
                     key_value_list.append([f"{TextColors.WARNING}{key.replace('_', ' ').title()}{TextColors.ENDC}", value])
 
@@ -179,28 +182,11 @@ class CoWINAPI:
     def create_new_user_config(self, user_config_file):
         print(f"\n-->\tUsing mobile number: {self.mobile}")
 
-        while True:
-            print(f"\n-->\tGenerating OTP {TextColors.WARNING}(There might be some delay in receiving the OTP, please wait atleast 2 minutes){TextColors.ENDC}\n")
-
-            txnId = self.generateOTP()
-
-            otp = input("\nEnter OTP received on your mobile phone (Press 'Enter' to resend OTP): ")
-
-            if otp is not None and otp.strip() != "":
-                otp = otp.strip()
-                break
-
-        print("\n-->\tHashing OTP to SHA256, to authenticate it in next step")
-
-        hashed_otp = sha256(otp.encode("utf-8")).hexdigest()
-
-        print(f"\nhashed OTP: {hashed_otp}")
-
-        print("\n-->\tValidating 'OTP' to get token")
-
-        self.token = self.confirmOTP(hashed_otp, txnId)
-
-        self.auth_headers['Authorization'] = f'Bearer {self.token}'
+        if os.path.exists(user_config_file):
+            self.use_existing_user_config(user_config_file)
+            # self.generateUserToken(user_config_file, save_token_in_file=True, refresh_token=False)
+        else:
+            self.generateUserToken(user_config_file, save_token_in_file=False, refresh_token=False)
 
         print("\n-->\tGetting state, district and pincode preferences")
 
@@ -209,7 +195,10 @@ class CoWINAPI:
                 self.state_id, self.state_name, self.district_id, self.district_name, self.pincode_preferences = self.getStateDistrictPincodePreferences()
                 break
             except Exception:
-                self.refreshToken(user_config_file, save_token_in_file=False)
+                if os.path.exists(user_config_file):
+                    self.generateUserToken(user_config_file, save_token_in_file=True, refresh_token=True)
+                else:
+                    self.generateUserToken(user_config_file, save_token_in_file=False, refresh_token=True)
 
         while True:
             self.search_criteria = input(f"\n-->\tEnter search criteria {TextColors.WARNING}('1' to search by pincode, '2' to search by district){TextColors.ENDC}\n"
@@ -217,7 +206,7 @@ class CoWINAPI:
                                          f"from your pincode preferences:{TextColors.ENDC} ")
 
             if self.search_criteria is not None or self.search_criteria.strip() != "":
-                self.search_criteria = int(self.search_criteria)
+                self.search_criteria = int(self.search_criteria.strip())
                 if self.search_criteria in [1, 2]:
                     break
                 else:
@@ -239,23 +228,20 @@ class CoWINAPI:
             self.appointment_date = (dt.datetime.today()).strftime("%d-%m-%Y")
             print(f"\n{TextColors.FAIL}No date entered. Defaulted to today's date '{self.appointment_date}'...{TextColors.ENDC}")
 
-        slot_options = ["09:00AM-11:00AM", "11:00AM-01:00PM", "01:00PM-03:00PM", "03:00PM-05:00PM"]
-
         while True:
-            self.slot_preference = input(f"\nEnter slot preference ID (SELECT ONE) {TextColors.WARNING}[ID '1': 9AM to 11AM, ID '2': 11AM to 1PM, ID '3': 1PM to 3PM, ID '4': 3PM to 5PM]{TextColors.ENDC}: ")
+            self.slot_preference = input(f"\n-->\tEnter slot preference ID {TextColors.WARNING}(SELECT ONE) ['1' to 'Select random slot', '2' to 'Enter manually when a valid centre is found']{TextColors.ENDC}: ")
 
             if self.slot_preference is not None or self.slot_preference.strip() != "":
                 try:
-                    self.slot_preference = int(self.slot_preference)
-                    if 0 < self.slot_preference < 5:
-                        self.slot_preference = slot_options[self.slot_preference - 1]
+                    self.slot_preference = int(self.slot_preference.strip())
+                    if 0 < self.slot_preference < 3:
                         break
                     else:
-                        print(f"\n{TextColors.FAIL}Invalid input! Please enter one of the above four IDs{TextColors.ENDC}")
+                        print(f"\n{TextColors.FAIL}Invalid input! Please select one of the above mentioned options{TextColors.ENDC}")
                 except Exception:
-                    print(f"\n{TextColors.FAIL}Invalid input! Please enter one of the above four IDs{TextColors.ENDC}")
+                    print(f"\n{TextColors.FAIL}Invalid input! Please select one of the above mentioned options{TextColors.ENDC}")
             else:
-                print(f"\n{TextColors.FAIL}Invalid input! Please enter one of the above four IDs{TextColors.ENDC}")
+                print(f"\n{TextColors.FAIL}Invalid input! Please select one of the above mentioned options{TextColors.ENDC}")
 
         print(f"\n{TextColors.WARNING}[+]{TextColors.ENDC} {TextColors.UNDERLINE}{TextColors.BOLD}TIP FOR NEXT INPUT:{TextColors.ENDC} "
               f"{TextColors.BOLD}If you prefer centre with name 'Swami Ram Hospital (Garhi Cantt.)' & 'Centre Name 2' type "
@@ -263,7 +249,10 @@ class CoWINAPI:
               f"or 'swami ram, centre name 2', etc.{TextColors.ENDC}")
         input("\nPress 'Enter' to get a list of all available centres in your district and then input your centre preference...")
         self.getCalendarByDistrict(user_config_file)
-        centre_preferences = input(f"\nEnter short/full centre name for centre preference "
+        print(f"\n{TextColors.BOLD}Note: The above mentioned values for 'Min Age, Available Capacity and Slots' are for one of the sessions "
+              f"at that centre only. You can still enter a centre's name below as your preference as there might be other sessions as well in "
+              f"the same centre with different 'Min Age, Available Capacity and Slots' value.{TextColors.ENDC}")
+        centre_preferences = input(f"\n-->\tEnter short/full centre name for centre preference "
                                    f"{TextColors.WARNING}(comma-separated in case of multiple){TextColors.ENDC}: ")
 
         if centre_preferences is not None and centre_preferences.strip() != "":
@@ -305,7 +294,7 @@ class CoWINAPI:
                                          f"from your pincode preferences:{TextColors.ENDC} ")
 
             if self.search_criteria is not None or self.search_criteria.strip() != "":
-                self.search_criteria = int(self.search_criteria)
+                self.search_criteria = int(self.search_criteria.strip())
                 if self.search_criteria in [1, 2]:
                     break
                 else:
@@ -320,50 +309,83 @@ class CoWINAPI:
         if load_values_from_existing_config_first:
             self.use_existing_user_config(user_config_file)        # to initialise all other variables too, before calling update_user_config()
 
-        slot_options = ["09:00AM-11:00AM", "11:00AM-01:00PM", "01:00PM-03:00PM", "03:00PM-05:00PM"]
-
         while True:
-            self.slot_preference = input(f"\nEnter slot preference ID (SELECT ONE) {TextColors.WARNING}[ID '1': 9AM to 11AM, "
-                                         f"ID '2': 11AM to 1PM, ID '3': 1PM to 3PM, ID '4': 3PM to 5PM]{TextColors.ENDC}: ")
+            self.slot_preference = input(f"\n-->\tEnter slot preference ID {TextColors.WARNING}(SELECT ONE) ['1' to 'Select random slot', '2' to 'Enter manually when a valid centre is found']{TextColors.ENDC}: ")
 
             if self.slot_preference is not None or self.slot_preference.strip() != "":
                 try:
-                    self.slot_preference = int(self.slot_preference)
-                    if 0 < self.slot_preference < 5:
-                        self.slot_preference = slot_options[self.slot_preference - 1]
+                    self.slot_preference = int(self.slot_preference.strip())
+                    if 0 < self.slot_preference < 3:
                         break
                     else:
-                        print(f"\n{TextColors.FAIL}Invalid input! Please enter one of the above four IDs{TextColors.ENDC}")
+                        print(f"\n{TextColors.FAIL}Invalid input! Please select one of the above mentioned options{TextColors.ENDC}")
                 except Exception:
-                    print(f"\n{TextColors.FAIL}Invalid input! Please enter one of the above four IDs{TextColors.ENDC}")
+                    print(f"\n{TextColors.FAIL}Invalid input! Please select one of the above mentioned options{TextColors.ENDC}")
             else:
-                print(f"\n{TextColors.FAIL}Invalid input! Please enter one of the above four IDs{TextColors.ENDC}")
+                print(f"\n{TextColors.FAIL}Invalid input! Please select one of the above mentioned options{TextColors.ENDC}")
 
         self.update_user_config(['slot_preference'], [self.slot_preference], user_config_file)
 
 
-    def refreshToken(self, user_config_file, save_token_in_file=True):
-        print(f"\n{TextColors.FAIL}Previous TOKEN Expired!!!{TextColors.ENDC}")
+    def getUserSlotPreference(self, centre):
+        available_slots = centre['slots']
+
+        slots_string = "\n".join([f'{idx+1}. {slot}' for idx, slot in enumerate(available_slots)])
+
+        print(f"\n{TextColors.WARNING}Available slots at '{centre['name']}':\n{slots_string}{TextColors.ENDC}")
+
+        if self.slot_preference == 1:
+            random_index = random.randint(0, len(available_slots) - 1)
+            slot_selected = available_slots[random_index]
+            print(f"\n{TextColors.BLACKONGREY}RANDOM SLOT SELECTED: {slot_selected}{TextColors.ENDC}")
+        else:
+            while True:
+                slot_selected = input(f"\nEnter preferred slot ID {TextColors.WARNING}(SELECT ONE){TextColors.ENDC}: ")
+
+                if slot_selected is not None or slot_selected.strip() != "":
+                    try:
+                        slot_selected = int(slot_selected.strip())
+                        if 0 < slot_selected <= len(available_slots):
+                            slot_selected = available_slots[slot_selected - 1]
+                            break
+                        else:
+                            print(f"\n{TextColors.FAIL}Invalid input! Please select one of the above mentioned slots{TextColors.ENDC}")
+                    except Exception:
+                        print(f"\n{TextColors.FAIL}Invalid input! Please select one of the above mentioned slots{TextColors.ENDC}")
+                else:
+                    print(f"\n{TextColors.FAIL}Invalid input! Please select one of the above mentioned slots{TextColors.ENDC}")
+
+        return slot_selected
+
+
+    def generateUserToken(self, user_config_file, save_token_in_file=True, refresh_token=False):
+        if refresh_token:
+            print(f"\n{TextColors.FAIL}Previous TOKEN Expired!!!{TextColors.ENDC}")
 
         while True:
-            print(f"\n{TextColors.WARNING}[+]{TextColors.ENDC} Generating OTP {TextColors.WARNING}(There might be some delay in receiving the OTP, please wait atleast 2 minutes){TextColors.ENDC}\n")
+            print(f"\n-->\tGenerating OTP {TextColors.WARNING}(There might be some delay in receiving the OTP, please wait atleast 2 minutes){TextColors.ENDC}\n")
 
             txnId = self.generateOTP()
 
-            otp = input("\nEnter OTP received on your mobile phone (Press 'Enter' to resend OTP): ")
+            otp = input("\n-->\tEnter OTP received on your mobile phone (Press 'Enter' to resend OTP): ")
 
-            if otp is not None and otp.strip() != "":
+            if otp is None or otp.strip() == "":
+                continue
+
+            otp = otp.strip()
+
+            # print("\n-->\tHashing OTP to SHA256, to authenticate it in next step")
+
+            hashed_otp = sha256(otp.encode("utf-8")).hexdigest()
+
+            # print(f"\nhashed OTP: {hashed_otp}")
+
+            print("\n-->\tValidating 'OTP' to get token")
+
+            self.token = self.confirmOTP(hashed_otp, txnId)
+
+            if self.token is not None:
                 break
-
-        print("\n-->\tHashing OTP to SHA256, to authenticate it in next step")
-
-        hashed_otp = sha256(otp.encode("utf-8")).hexdigest()
-
-        print(f"\nhashed OTP: {hashed_otp}")
-
-        print("\n-->\tConfirming OTP to get token")
-
-        self.token = self.confirmOTP(hashed_otp, txnId)
 
         self.auth_headers['Authorization'] = f'Bearer {self.token}'
 
@@ -404,13 +426,13 @@ class CoWINAPI:
         try:
             token = response.json()["token"]
             print(f"\n{TextColors.BOLD}TOKEN OBTAINED:{TextColors.ENDC} {token}")
+            return token
         except Exception as e:
-            print(f"\n{TextColors.FAIL}FAILED ATTEMPT (message: {e}){TextColors.ENDC} (response: {response.text})")
-            if "unauthenticated access" in response.text.lower():
-                print(f"\n{TextColors.FAIL}INCORRECT OTP ENTERED!!!{TextColors.ENDC} Aborting program...")
-            exit(1)
-
-        return token
+            if "invalid otp" in response.text.lower() or "unauthenticated access" in response.text.lower():
+                print(f"\n{TextColors.FAIL}INCORRECT OTP ENTERED!!! Please enter the correct OTP{TextColors.ENDC}")
+            else:
+                print(f"\n{TextColors.FAIL}FAILED ATTEMPT (message: {e}){TextColors.ENDC} (response: {response.text})")
+            return None
 
 
     def getStateDistrictPincodePreferences(self):
@@ -424,10 +446,10 @@ class CoWINAPI:
                 while True:
                     state_id = input("\nEnter state ID: ")
                     ids_list = [str(state['state_id']) for state in response.json()['states']]
-                    if state_id not in ids_list:
+                    if state_id.strip() not in ids_list:
                         print(f"\n{TextColors.FAIL}Invalid input! Please enter correct state ID{TextColors.ENDC}")
                         continue
-                    state_id = int(state_id)
+                    state_id = int(state_id.strip())
                     state_name = [state['state_name'] for state in response.json()['states'] if state['state_id'] == state_id][0]
                     break
 
@@ -440,10 +462,10 @@ class CoWINAPI:
                     while True:
                         district_id = input("\nEnter district ID: ")
                         ids_list = [str(district['district_id']) for district in response.json()['districts']]
-                        if district_id not in ids_list:
+                        if district_id.strip() not in ids_list:
                             print(f"\n{TextColors.FAIL}Invalid input! Please enter correct district ID{TextColors.ENDC}")
                             continue
-                        district_id = int(district_id)
+                        district_id = int(district_id.strip())
                         district_name = [district['district_name'] for district in response.json()['districts'] if district['district_id'] == district_id][0]
                         break
                 else:
@@ -630,7 +652,7 @@ class CoWINAPI:
                 return captcha_builder(response.json())
             else:
                 if "unauthenticated access" in response.text.lower():
-                    self.refreshToken(user_config_file)
+                    self.generateUserToken(user_config_file, refresh_token=True)
                 else:
                     print(f"\n{TextColors.FAIL}FAILED ATTEMPT (message: could not generate captcha){TextColors.ENDC} (response: {response.text})... trying again in 1 sec.")
                     time.sleep(1)
@@ -673,7 +695,7 @@ class CoWINAPI:
             print(f"\ntrying centre '{centre['name']}'\t{TextColors.BOLD}{TextColors.WARNING}(Min Age Limit: {centre['min_age_limit']}){TextColors.ENDC}...", end=" ")
 
             dummy_centre_check = False
-            # dummy_centre_check = 'max super' in centre['name'].lower()
+            # dummy_centre_check = 'aiims' in centre['name'].lower()
 
             if self.isValidCentre(centre, min_age_limit) or dummy_centre_check:
                 print(f"{TextColors.BOLD}{TextColors.WARNING}BOOKING{TextColors.ENDC}")
@@ -686,7 +708,8 @@ class CoWINAPI:
                         "dose": dose_number,
                         "center_id": centre['center_id'],
                         "session_id": centre['session_id'],
-                        "slot": self.slot_preference,
+                        # "slot": self.slot_preference,
+                        "slot": self.getUserSlotPreference(centre),
                         "beneficiaries": ref_ids,
                         "captcha": captcha
                     })
@@ -701,7 +724,7 @@ class CoWINAPI:
                         break
                     except Exception as e:
                         if "unauthenticated access" in response.text.lower():
-                            self.refreshToken(user_config_file)
+                            self.generateUserToken(user_config_file, refresh_token=True)
                         else:
                             print(f"\n{TextColors.FAIL}FAILED ATTEMPT (message: {e}){TextColors.ENDC} (response: {response.text})")
                 else:
