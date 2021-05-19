@@ -76,38 +76,6 @@ else:
 
     cowinAPI.create_new_user_config(user_config_file)
 
-all_centres = cowinAPI.findCentresBySearchCriteria()
-
-if len(all_centres) == 0:
-    print(f"{TextColors.FAIL}No Centre Found{TextColors.ENDC} (Either all centres are fully booked for the selected appointment date or slots aren't opened yet. "
-          f"You can also try running the script again after changing date, search criteria, district or pincode)")
-
-    while True:
-        answer = input(f"\n-->\tEnter choice {TextColors.WARNING}(Continue with existing configuration (y) / "
-                       f"Change appointment date (c) / Change search criteria (s)){TextColors.ENDC}\n"
-                       f"{TextColors.BOLD}Note: Continue with existing configuration only if you are "
-                       f"sure that slots are gonna open in few minutes!{TextColors.ENDC}: ")
-
-        if answer.lower().strip() == 'y':
-            cowinAPI.use_existing_user_config(user_config_file)
-            break
-        elif answer.lower().strip() == 'c':
-            cowinAPI.changeAppointmentDate(user_config_file, load_values_from_existing_config_first=False)
-            break
-        elif answer.lower().strip() == 's':
-            cowinAPI.changeSearchCriteria(user_config_file, load_values_from_existing_config_first=False)
-            break
-        else:
-            print(f"\n{TextColors.FAIL}Invalid input!{TextColors.ENDC}")
-else:
-    centres_list = [{"Name": centre['name'], "District": centre['district_name'], "Pincode": centre['pincode'], "Vaccine Name": centre['vaccine'],
-                     "Fee Type": centre['fee_type'], "Min Age": centre['min_age_limit'], "Available Capacity": centre['available_capacity'],
-                     "Slots": "\n".join(centre['slots'])} for centre in all_centres]
-
-    cowinAPI.display_table(centres_list)
-
-    print(f"\n{TextColors.BLACKONGREY}Total Centres Found: {len(all_centres)}{TextColors.ENDC}")
-
 while True:
     print(f"\n-->\tGetting beneficiaries registered with mobile number '{mobile}'\n")
 
@@ -175,7 +143,7 @@ while True:
             break
 
 while True:
-    dose_number = input("\nEnter dose number for selected beneficiaries (SELECT ONE) ('1' for dose 1, '2' for dose 2): ")
+    dose_number = input(f"\nEnter dose number for selected beneficiaries {TextColors.WARNING}(SELECT ONE) ('1' for dose 1, '2' for dose 2){TextColors.ENDC}: ")
 
     if dose_number is not None or dose_number.strip() != "":
         dose_number = int(dose_number)
@@ -187,7 +155,7 @@ while True:
         print(f"\n{TextColors.FAIL}Invalid input! Please enter one of the above two choices{TextColors.ENDC}")
 
 while True:
-    min_age_limit = input("\nEnter min age limit for selected beneficiaries (SELECT ONE) ('1' for 18+, '2' for 45+): ")
+    min_age_limit = input(f"\nEnter min age limit for selected beneficiaries {TextColors.WARNING}(SELECT ONE) ('1' for 18+, '2' for 45+){TextColors.ENDC}: ")
 
     if min_age_limit is not None or min_age_limit.strip() != "":
         min_age_limit = int(min_age_limit)
@@ -199,7 +167,46 @@ while True:
     else:
         print(f"\n{TextColors.FAIL}Invalid input! Please enter one of the above two choices{TextColors.ENDC}")
 
-print(f"\n-->\tAttempting to book appointment {TextColors.WARNING}(every 3 seconds for next 4 minutes, i.e., total 80 attempts){TextColors.ENDC}", end="")
+print(f"\n-->\tAttempting to book appointment {TextColors.WARNING}(every 3 seconds for next 4 minutes, i.e., total 80 attempts)"
+      f"{TextColors.ENDC}")
+
+input(f"\n{TextColors.BOLD}Note: keep an eye on the screen when the process starts, as when a valid centre"
+      f" gets available you will be asked to enter a captcha to book and confirm the appointment{TextColors.ENDC}"
+      f"\n\nPress 'Enter' to continue...")
+
+all_centres = cowinAPI.findCentresBySearchCriteria()
+
+if len(all_centres) == 0:
+    print(f"{TextColors.FAIL}No Centre Found{TextColors.ENDC} (Either all centres are fully booked for the selected appointment date or "
+          f"slots aren't opened yet. You can continue with the same configuration or try changing date or search criteria)")
+
+    while True:
+        print(f"\n{TextColors.BOLD}Note: Continue with existing configuration only if you are sure that slots are gonna open in few minutes!{TextColors.ENDC}")
+        answer = input(f"\n-->\tEnter choice {TextColors.WARNING}(Continue with existing configuration (y) / "
+                       f"Change appointment date (c) / Change search criteria (s)){TextColors.ENDC}: ")
+
+        if answer.lower().strip() == 'y':
+            # cowinAPI.use_existing_user_config(user_config_file)
+            print(f"\n{TextColors.WARNING}[+]{TextColors} Continuing with existing configuration", end="")
+            break
+        elif answer.lower().strip() == 'c':
+            cowinAPI.changeAppointmentDate(user_config_file, load_values_from_existing_config_first=False)
+            print(f"\n{TextColors.WARNING}[+]{TextColors} Appointment date changed successfully", end="")
+            break
+        elif answer.lower().strip() == 's':
+            cowinAPI.changeSearchCriteria(user_config_file, load_values_from_existing_config_first=False)
+            print(f"\n{TextColors.WARNING}[+]{TextColors} Search criteria changed successfully", end="")
+            break
+        else:
+            print(f"\n{TextColors.FAIL}Invalid input! Please enter a valid option to continue{TextColors.ENDC}")
+else:
+    # centres_list = [{"Name": centre['name'], "District": centre['district_name'], "Pincode": centre['pincode'], "Vaccine Name": centre['vaccine'],
+    #                  "Fee Type": centre['fee_type'], "Min Age": centre['min_age_limit'], "Available Capacity": centre['available_capacity'],
+    #                  "Slots": "\n".join(centre['slots'])} for centre in all_centres]
+    #
+    # cowinAPI.display_table(centres_list)
+
+    print(f"\n{TextColors.BLACKONGREY}Total Centres Found: {len(all_centres)}{TextColors.ENDC}", end="")
 
 attempts = 0
 

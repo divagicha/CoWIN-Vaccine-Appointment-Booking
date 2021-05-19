@@ -44,7 +44,7 @@
 <!-- ABOUT -->
 ## About The Project
 
-As it's a difficult task to schedule an appointment for CoVid-Vaccine with only limited slots available for each day, this script automates the whole process of checking availability of slots every 3 seconds and also books it as soon as it becomes available. Just enter your preferences initially **(pincode, district, institute preference, slot timing, etc.)** and just let this script do the rest.
+As it's a difficult task to schedule an appointment for CoVid-Vaccine with only limited slots available for each day, this script automates the whole process of checking availability of slots every 3 seconds and also books it as soon as it becomes available. Just enter your preferences initially **(pincode, district, centre preference, slot timing, etc.)** and just let this script do the rest.
 
 
 
