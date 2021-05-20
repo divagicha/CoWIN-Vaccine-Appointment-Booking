@@ -25,7 +25,7 @@
 <br />
 <p align="center">
 	<a href="https://github.com/DivAgicha/CoWIN-Vaccine-Appointment-Booking">
-		<img src="images/logo.png" alt="Logo" width="80" height="80">
+		<img src="./images/logo.png" alt="Logo" width="80" height="80">
 	</a>
 	<h3 align="center">CoWIN Vaccine Appointment Booking</h3>
 	<p align="center">
@@ -58,9 +58,29 @@ As it's a difficult task to schedule an appointment for CoVid-Vaccine with only 
 6. Slot Preference *(whether to select a random slot from among the available slots for a particular centre or ask the user to manually select the slot once a valid centre is found)*
 7. Appointment Date *(date for which the centres have to be checked for availability and scheduling thereafter)*
 8. Beneficiaries *(which beneficiaries to schedule appointment for, among all the registered benficiaries(max. 4) in the account)*
-9. Dose Number *(which dose(1 or 2) appointment to schedule, for the selected beneficiaries)*
+9. Dose Number *(which dose number (1 or 2) appointment to schedule. Must be same for all the selected beneficiaries)*
 10. Min Age Limit *(minimum age limit of the selected beneficiaries. All selected beneficiaries must belong to the same minimum age group, either 18+ or 45+)*
 
+
+
+### Screenshots
+
+![](./images/screenshots/1.png)
+
+
+![](./images/screenshots/2.png)
+
+
+![](./images/screenshots/3.png)
+
+
+![](./images/screenshots/4.png)
+
+
+![](./images/screenshots/5.png)
+
+
+![](./images/screenshots/6.png)
 
 
 <!-- PREREQUISITES -->
@@ -78,7 +98,7 @@ This project requires **Python (3.6 or higher)** to be installed on the user sys
 	```sh
 	git clone https://github.com/DivAgicha/CoWIN-Vaccine-Appointment-Booking.git
 	```	
-3. Alternatively, if you don't have Git CLI you can directly get the project's zip file by going over to link [CoWIN-Vaccine-Appointment-Booking](https://github.com/DivAgicha/CoWIN-Vaccine-Appointment-Booking), and extract the contents to desired location
+3. Alternatively, if you don't have Git CLI you can directly download the project's zip file by clicking [here](https://github.com/DivAgicha/CoWIN-Vaccine-Appointment-Booking/archive/refs/heads/master.zip). Once downloaded, extract the contents of the zip file to desired location
 4. Open shell / command-prompt and change the working directory to "CoWIN-Vaccine-Appointment-Booking"
 	```sh
 	cd "path_to_CoWIN-Vaccine-Appointment-Booking_directory"
@@ -97,7 +117,7 @@ This project requires **Python (3.6 or higher)** to be installed on the user sys
 <!-- CONTRIBUTING -->
 ## Contributing
 
-Contributions are what make the open source community such an amazing place to be learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
 1. Fork the Project
 2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)

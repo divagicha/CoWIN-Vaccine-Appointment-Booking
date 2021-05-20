@@ -634,7 +634,7 @@ class CoWINAPI:
     @staticmethod
     def get_appointment_details(appointment_dict):
         appointment_details = f"{TextColors.HEADER}Apt. ID:{TextColors.ENDC} {appointment_dict['appointment_id']}\n" \
-                              f"{TextColors.HEADER}Venue:{TextColors.ENDC} {appointment_dict['name']}\n" \
+                              f"{TextColors.HEADER}Centre:{TextColors.ENDC} {appointment_dict['name']}\n" \
                               f"{TextColors.HEADER}Date:{TextColors.ENDC} {appointment_dict['date']}\n" \
                               f"{TextColors.HEADER}Slot:{TextColors.ENDC} {appointment_dict['slot']}"
 
