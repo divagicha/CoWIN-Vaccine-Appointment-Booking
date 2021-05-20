@@ -9,7 +9,7 @@ from CovidVaccineChecker import TextColors, CoWINAPI
 
 os.system("color FF")                                   # to get screen colors when running script on shell / CMD
 
-print(f"""{TextColors.WARNING}
+print(f"""
   .oooooo.             oooooo   oooooo     oooo ooooo ooooo      ooo            .o.       ooooooooo.   ooooo 
  d8P'  `Y8b             `888.    `888.     .8'  `888' `888b.     `8'           .888.      `888   `Y88. `888' 
 888           .ooooo.    `888.   .8888.   .8'    888   8 `88b.    8           .8"888.      888   .d88'  888  
@@ -17,7 +17,7 @@ print(f"""{TextColors.WARNING}
 888          888   888     `888.8'  `888.8'      888   8     `88b.8         .88ooo8888.    888          888  
 `88b    ooo  888   888      `888'    `888'       888   8       `888        .8'     `888.   888          888  
  `Y8bood8P'  `Y8bod8P'       `8'      `8'       o888o o8o        `8       o88o     o8888o o888o        o888o 
-{TextColors.ENDC}""")
+""")
 
 mobile_number_pattern = re.compile("^[7-9][0-9]{9}$")
 
@@ -241,3 +241,5 @@ while True:
 
 if not appointment_booked_flag:
     print(f"\n{TextColors.FAIL}FAILED: Appointment could not be booked, as no valid slot found to be available. Please try again after 1 minute.{TextColors.ENDC}")
+
+input("\nScript executed successfully! Press 'Enter' to exit...")

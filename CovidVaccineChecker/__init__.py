@@ -258,7 +258,7 @@ class CoWINAPI:
         if centre_preferences is not None and centre_preferences.strip() != "":
             self.centre_preferences = centre_preferences.strip().replace(', ', ',').lower().split(",")
 
-        print(f"\n-->\tSaving user configuration to file '{user_config_file.split('/')[-1]}'... ")
+        print(f"\n-->\tSaving user configuration to file '{user_config_file}'... ")
 
         self.save_user_config(user_config_file)
 

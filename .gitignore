@@ -4,3 +4,6 @@ venv/*
 old_scripts/*
 user_data/*
 captcha/*
+dist/*
+!dist/*.exe
+*.bat
