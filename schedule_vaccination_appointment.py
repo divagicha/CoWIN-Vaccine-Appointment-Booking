@@ -237,9 +237,8 @@ while True:
             break
     except KeyboardInterrupt:
         print(f"\n{TextColors.FAIL}(FAILED: Scheduling interrupted by user){TextColors.ENDC}")
+        input("\nPress any key to exit...")
         exit(1)
 
 if not appointment_booked_flag:
     print(f"\n{TextColors.FAIL}FAILED: Appointment could not be booked, as no valid slot found to be available. Please try again after 1 minute.{TextColors.ENDC}")
-
-input("\nScript executed successfully! Press 'Enter' to exit...")

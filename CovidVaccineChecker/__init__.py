@@ -649,6 +649,8 @@ class CoWINAPI:
 
             if response.status_code == 200:
                 print(f"\nCAPTCHA GENERATED!!!")
+                # with open("response_captcha.json", "w") as captcha_json_file:
+                #     captcha_json_file.write(json.dumps(response.json(), indent=4))
                 return captcha_builder(response.json())
             else:
                 if "unauthenticated access" in response.text.lower():

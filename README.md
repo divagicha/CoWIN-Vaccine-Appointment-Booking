@@ -91,7 +91,7 @@ This project requires **Python (3.6 or higher)** to be installed on the user sys
 
 
 <!-- INSTALLATION -->
-### Installation
+### Installation (via ZIP file)
 
 1. Install **Python (3.6 or higher)** and **Git CLI (OPTIONAL)** on the system by searching for respective setups for your operaing system on Google
 2. Clone the repo
@@ -111,6 +111,16 @@ This project requires **Python (3.6 or higher)** to be installed on the user sys
 	```sh
 	python schedule_vaccination_appointment.py
 	```
+
+
+
+<!-- INSTALLATION -->
+### Installation (via EXE file)		![only for windows](https://img.shields.io/badge/Note-For%20Windows%20Users%20Only-green?style=plastic)
+
+1. Navigate to the **'dist'** directory for the setup file or click [here](https://github.com/DivAgicha/CoWIN-Vaccine-Appointment-Booking/raw/master/dist/CovidVaccinationAppointmentScheduler-Setup-v1.1.exe) to download the same for Windows.
+2. Double-click the installer file and follow the instructions to install the program.
+3. Upon successful installation you will find `Covid Vaccination Appointment Scheduler` folder in your `C:\Program Files (x86)\` directory.
+4. Open the folder and run `schedule_vaccination_appointment.exe` file.
 
 
 

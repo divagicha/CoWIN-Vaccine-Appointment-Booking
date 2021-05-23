@@ -1,8 +1,9 @@
-from svglib.svglib import svg2rlg
-from reportlab.graphics import renderPM
+# from svglib.svglib import svg2rlg
+# from reportlab.graphics import renderPM
 import PySimpleGUI as simpleGUI
 import re
 from PIL import Image
+from cairosvg import svg2png
 # from anticaptchaofficial.imagecaptcha import imagecaptcha
 
 captcha_svgFile = './captcha/captcha.svg'
@@ -11,15 +12,23 @@ captcha_gifFile = './captcha/captcha.gif'
 
 
 def captcha_builder(resp):
-    with open(captcha_svgFile, 'w') as f:
-        f.write(re.sub('(<path d=)(.*?)(fill="none"/>)', '', resp['captcha']))
+    # with open(captcha_svgFile, 'w') as f:
+    #     f.write(re.sub('(<path d=)(.*?)(fill="none"/>)', '', resp['captcha']))
+    #
+    # drawing = svg2rlg(captcha_svgFile)
+    # renderPM.drawToFile(drawing, captcha_pngFile, fmt="PNG")
+    #
+    # im = Image.open(captcha_pngFile)
+    # im = im.convert('RGB').convert('P', palette=Image.ADAPTIVE)
+    # im.save(captcha_gifFile)
 
-    drawing = svg2rlg(captcha_svgFile)
-    renderPM.drawToFile(drawing, captcha_pngFile, fmt="PNG")
+    captcha_svg_code = re.sub('(<path d=)(.*?)(fill="none"/>)', '', resp['captcha'])
+    svg2png(bytestring=captcha_svg_code, write_to=captcha_pngFile)
 
     im = Image.open(captcha_pngFile)
-    im = im.convert('RGB').convert('P', palette=Image.ADAPTIVE)
-    im.save(captcha_gifFile)
+    white_bg = Image.new("RGB", im.size, (255, 255, 255))
+    white_bg.paste(im, im)
+    white_bg.save(captcha_gifFile)
 
     layout = [[simpleGUI.Image(captcha_gifFile)],
               [simpleGUI.Text("Enter Captcha Below")],
@@ -31,7 +40,7 @@ def captcha_builder(resp):
     window.Element('input').SetFocus()    # focus on field
     event, values = window.read()
     window.close()
-    return values['input']
+    return values['input'] if values else " "
 
 
 # def captcha_builder_auto(resp, api_key):
