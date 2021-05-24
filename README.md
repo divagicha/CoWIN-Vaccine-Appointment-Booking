@@ -39,16 +39,28 @@
 		<a href="mailto:div.agicha@gmail.com">Request Feature</a>
 </p>
 
+--------------------------------
+
+# Table of Contents
+- [About The Project](#about-the-project)
+- [Customizable Options in the Program](#customizable-options-in-the-program)
+- [Screenshots](#screenshots)
+- [Prerequisites](#prerequisites)
+	- [Installation (via ZIP file)](#installation-via-zip-file)
+	- [Installation (via EXE file)](#installation-via-exe-file)	![for windows users only](https://img.shields.io/badge/Operating%20System-Windows-green?style=plastic)
+- [Contributing](#contributing)
+- [Contact](#contact)
 
 
 <!-- ABOUT -->
+<a name="about-the-project"></a>
 ## About The Project
 
 As it's a difficult task to schedule an appointment for CoVid-Vaccine with only limited slots available for each day, this script automates the whole process of checking availability of slots every 3 seconds and also books it as soon as it becomes available. Just do a **one-time configuration** by entering your preferences initially **(pincode, district, centre preference, slot timing, etc.)** and let this script do the rest.
 
 
-
-### Customizable Options in the Program
+<a name="customizable-options-in-the-program"></a>
+## Customizable Options in the Program
 
 1. State ID / Name
 2. District ID / Name
@@ -62,8 +74,8 @@ As it's a difficult task to schedule an appointment for CoVid-Vaccine with only 
 10. Min Age Limit *(minimum age limit of the selected beneficiaries. All selected beneficiaries must belong to the same minimum age group, either 18+ or 45+)*
 
 
-
-### Screenshots
+<a name="screenshots"></a>
+## Screenshots
 
 ![](./images/screenshots/1.png)
 
@@ -84,13 +96,15 @@ As it's a difficult task to schedule an appointment for CoVid-Vaccine with only 
 
 
 <!-- PREREQUISITES -->
-### Prerequisites
+<a name="prerequisites"></a>
+## Prerequisites
 
 This project requires **Python (3.6 or higher)** to be installed on the user system.
 
 
 
 <!-- INSTALLATION -->
+<a name="installation-via-zip-file"></a>
 ### Installation (via ZIP file)
 
 1. Install **Python (3.6 or higher)** and **Git CLI (OPTIONAL)** on the system by searching for respective setups for your operaing system on Google
@@ -115,9 +129,10 @@ This project requires **Python (3.6 or higher)** to be installed on the user sys
 
 
 <!-- INSTALLATION -->
-### Installation (via EXE file)		![only for windows](https://img.shields.io/badge/Note-For%20Windows%20Users%20Only-green?style=plastic)
+<a name="installation-via-exe-file"></a>
+### Installation (via EXE file)
 
-1. Navigate to the **'dist'** directory for the setup file or click [here](https://github.com/DivAgicha/CoWIN-Vaccine-Appointment-Booking/raw/master/dist/CovidVaccinationAppointmentScheduler-Setup-v1.1.exe) to download the same for Windows.
+1. Navigate to the **'dist'** directory for the setup file or click [here](https://github.com/DivAgicha/CoWIN-Vaccine-Appointment-Booking/raw/master/dist/CovidVaccinationAppointmentScheduler-Setup-v1.2.exe) to download the same for Windows.
 2. Double-click the installer file and follow the instructions to install the program.
 3. Upon successful installation you will find `Covid Vaccination Appointment Scheduler` folder in your `C:\Program Files (x86)\` directory.
 4. Open the folder and run `schedule_vaccination_appointment.exe` file.
@@ -125,6 +140,7 @@ This project requires **Python (3.6 or higher)** to be installed on the user sys
 
 
 <!-- CONTRIBUTING -->
+<a name="contributing"></a>
 ## Contributing
 
 Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
@@ -138,6 +154,7 @@ Contributions are what make the open source community such an amazing place to l
 
 
 <!-- CONTACT -->
+<a name="contact"></a>
 ## Contact
 
 Name - Divyansh Agicha - [div.agicha@gmail.com](mailto:div.agicha@gmail.com)
