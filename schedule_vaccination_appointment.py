@@ -19,7 +19,7 @@ print(f"""
  `Y8bood8P'  `Y8bod8P'       `8'      `8'       o888o o8o        `8       o88o     o8888o o888o        o888o 
 """)
 
-mobile_number_pattern = re.compile("^[7-9][0-9]{9}$")
+mobile_number_pattern = re.compile("^[6-9][0-9]{9}$")
 
 while True:
     mobile = input("\n-->\tEnter mobile: ")
@@ -28,7 +28,7 @@ while True:
         mobile = mobile.strip()
         break
     else:
-        print(f"\n{TextColors.FAIL}Invalid input! Please enter correct mobile number (rule: 10-digit number starting with either 7,8 or 9){TextColors.ENDC}")
+        print(f"\n{TextColors.FAIL}Invalid input! Please enter correct mobile number (rule: 10-digit number starting with either 6,7,8 or 9){TextColors.ENDC}")
 
 cowinAPI = CoWINAPI(mobile)
 
