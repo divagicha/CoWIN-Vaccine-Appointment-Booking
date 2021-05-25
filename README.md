@@ -132,7 +132,7 @@ This project requires **Python (3.6 or higher)** to be installed on the user sys
 <a name="installation-via-exe-file"></a>
 ### Installation (via EXE file)
 
-1. Navigate to the **'dist'** directory for the setup file or click [here](https://github.com/DivAgicha/CoWIN-Vaccine-Appointment-Booking/raw/master/dist/CovidVaccinationAppointmentScheduler-Setup-v1.2.exe) to download the same for Windows.
+1. Navigate to the **'dist'** directory for the setup file or click [here](https://github.com/DivAgicha/CoWIN-Vaccine-Appointment-Booking/raw/master/dist/CovidVaccinationAppointmentScheduler-Setup-v1.2.2.exe) to download the same for Windows.
 2. Double-click the installer file and follow the instructions to install the program.
 3. Upon successful installation you will find `Covid Vaccination Appointment Scheduler` folder in your `C:\Program Files (x86)\` directory.
 4. Open the folder and run `schedule_vaccination_appointment.exe` file.

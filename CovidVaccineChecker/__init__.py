@@ -28,13 +28,15 @@ class CoWINAPI:
     BASE_PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
     user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36'
-    secret = "U2FsdGVkX1+LQcQNX+RTIipW+jdFWg02BOScu2dJksHYVYzKd3h2oAbeECbhE4SrYB0JIkVLHf4cSdxK7uSmiA=="
+    secret = "U2FsdGVkX1/tQZSmh54vpi/QKFaw99sAGMzACIHBXfCijS/gI4DLzhzipWUdymVRpgb6tcgkZlFSK5Hm+cjkLQ=="
     headers = {
-        'User-Agent': user_agent
+        'User-Agent': user_agent,
+        'Origin': 'https://selfregistration.cowin.gov.in'
     }
     auth_headers = {
         'Authorization': None,
-        'User-Agent': user_agent
+        'User-Agent': user_agent,
+        'Origin': 'https://selfregistration.cowin.gov.in'
     }
 
     base_url = "https://cdn-api.co-vin.in/api/v2"
@@ -454,7 +456,7 @@ class CoWINAPI:
                     break
 
                 print(f"\n{TextColors.WARNING}[+]{TextColors.ENDC} Getting list of all districis in '{state_name}'\n")
-                response = requests.request("GET", self.getDistricts_url + "/" + str(state_id), headers=self.headers)
+                response = requests.request("GET", self.getDistricts_url + "/" + str(state_id), headers=self.auth_headers)
 
                 if response.status_code == 200:
                     self.display_table(response.json()['districts'])
@@ -506,7 +508,7 @@ class CoWINAPI:
 
         while True:
             print(f"\n-->\tGetting list of centres for district '{self.district_name}', using date '{self.appointment_date}'\n")
-            response = requests.request("GET", self.getCalendarByDistrict_url, headers=self.headers, params=params)
+            response = requests.request("GET", self.getCalendarByDistrict_url, headers=self.auth_headers, params=params)
 
             try:
                 all_centres = response.json()['centers']
@@ -561,7 +563,7 @@ class CoWINAPI:
             "date": self.appointment_date,
         }
 
-        response = requests.request("GET", self.findByPin_url, headers=self.headers, params=params)
+        response = requests.request("GET", self.findByPin_url, headers=self.auth_headers, params=params)
 
         try:
             all_centres = response.json()['sessions']
@@ -581,7 +583,7 @@ class CoWINAPI:
             # "vaccine": "COVISHIELD"
         }
 
-        response = requests.request("GET", self.findByDistrict_url, headers=self.headers, params=params)
+        response = requests.request("GET", self.findByDistrict_url, headers=self.auth_headers, params=params)
 
         try:
             all_centres = response.json()['sessions']
