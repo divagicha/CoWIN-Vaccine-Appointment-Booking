@@ -99,7 +99,9 @@ As it's a difficult task to schedule an appointment for CoVid-Vaccine with only 
 <a name="prerequisites"></a>
 ## Prerequisites
 
-This project requires **Python (3.6 or higher)** to be installed on the user system.
+- **When Installing via ZIP File**: This project requires **Python (3.6 or higher)** to be installed on the user system if instaling via **ZIP file**.
+
+- **When Installing via EXE File**: No initial setup is needed for installing and running this project via the **EXE file**
 
 
 
