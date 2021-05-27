@@ -90,7 +90,7 @@ def create_window(finalize=False):
                    simpleGUI.Button('Next', key='next_min_age_limit')]
                ])],
 
-               [simpleGUI.Text('Made with ❤ (https://github.com/divagicha/\nCoWIN-Vaccine-Appointment-Booking)', auto_size_text=True, font='Courier 8'),
+               [simpleGUI.Text('Made with ♥ (https://github.com/divagicha/\nCoWIN-Vaccine-Appointment-Booking)', auto_size_text=True, font='Courier 8'),
                 simpleGUI.Button('Reset Form', key='clear_values', tooltip="This will clear all the above values", size=(11, 1), button_color='Yellow'),
                 simpleGUI.Exit('Exit', size=(11, 1), button_color='Yellow')]]
 
