@@ -7,7 +7,7 @@ import datetime as dt
 from CovidVaccineChecker import TextColors, CoWINAPI
 
 
-os.system("color FF")                                   # to get screen colors when running script on shell / CMD
+os.system("color 0F")                                   # to get screen colors when running script on shell / CMD
 
 print(f"""
   .oooooo.             oooooo   oooooo     oooo ooooo ooooo      ooo            .o.       ooooooooo.   ooooo 
@@ -58,13 +58,10 @@ if os.path.exists(user_config_file):
             break
         elif answer.lower().strip() == 'c':
             cowinAPI.changeAppointmentDate(user_config_file)
-            break
         elif answer.lower().strip() == 's':
             cowinAPI.changeSearchCriteria(user_config_file)
-            break
         elif answer.lower().strip() == 't':
             cowinAPI.changeSlotPreference(user_config_file)
-            break
         elif answer.lower().strip() == 'q':
             print(f"\nExiting program...")
             exit(0)
@@ -120,19 +117,19 @@ while True:
     reference_ids = ids_input.strip().replace(" ", "").split(",")
 
     if ids_input.strip().lower() != '0':
-        beneficiary_index_pattern = re.compile("^[1-4]$")
-        areValidIds = [bool(beneficiary_index_pattern.match(id)) for id in reference_ids]
+        # beneficiary_index_pattern = re.compile("^[1-4]$")
+        areValidIds = [bool(0 < int(id) <= len(beneficiaries)) for id in reference_ids if id != '']
         if False in areValidIds:
             print(f"\n{TextColors.FAIL}Please enter correct indexes to proceed to booking{TextColors.ENDC}")
             continue
 
     if not isinstance(reference_ids[0], int):
-        reference_ids = [int(id) for id in reference_ids]
+        reference_ids = [int(id) for id in reference_ids if id != '']
     if reference_ids[0] == 0:
         reference_ids = [beneficiary['beneficiary_reference_id'] for beneficiary in beneficiaries]
         break
     else:
-        correct_ids_entered_flag = True
+        # correct_ids_entered_flag = True
         reference_ids = [id-1 for id in reference_ids if 0 < id <= len(beneficiaries)]
         reference_ids = [beneficiary['beneficiary_reference_id'] for idx, beneficiary in enumerate(beneficiaries) if idx in reference_ids]
 
@@ -180,8 +177,9 @@ if len(all_centres) == 0:
     print(f"{TextColors.FAIL}No Centre Found{TextColors.ENDC} (Either all centres are fully booked for the selected appointment date or "
           f"slots aren't opened yet. You can continue with the same configuration or try changing date or search criteria)")
 
+    print(f"\n{TextColors.BOLD}Note: Continue with existing configuration only if you are sure that slots are gonna open "
+          f"in few minutes!{TextColors.ENDC}")
     while True:
-        print(f"\n{TextColors.BOLD}Note: Continue with existing configuration only if you are sure that slots are gonna open in few minutes!{TextColors.ENDC}")
         answer = input(f"\n-->\tEnter choice {TextColors.WARNING}(Continue with existing configuration (y) / "
                        f"Change appointment date (c) / Change search criteria (s)){TextColors.ENDC}: ")
 
@@ -191,12 +189,12 @@ if len(all_centres) == 0:
             break
         elif answer.lower().strip() == 'c':
             cowinAPI.changeAppointmentDate(user_config_file, load_values_from_existing_config_first=False)
-            print(f"\n{TextColors.WARNING}[+]{TextColors.ENDC} Appointment date changed successfully", end="")
-            break
+            print(f"\n{TextColors.WARNING}[+]{TextColors.ENDC} Appointment date changed successfully")
+            # break
         elif answer.lower().strip() == 's':
             cowinAPI.changeSearchCriteria(user_config_file, load_values_from_existing_config_first=False)
-            print(f"\n{TextColors.WARNING}[+]{TextColors.ENDC} Search criteria changed successfully", end="")
-            break
+            print(f"\n{TextColors.WARNING}[+]{TextColors.ENDC} Search criteria changed successfully")
+            # break
         else:
             print(f"\n{TextColors.FAIL}Invalid input! Please enter a valid option to continue{TextColors.ENDC}")
 else:
@@ -209,6 +207,7 @@ else:
     print(f"\n{TextColors.BLACKONGREY}Total Centres Found: {len(all_centres)}{TextColors.ENDC}", end="")
 
 attempts = 0
+appointment_booked_flag = False
 
 while True:
     try:
@@ -241,4 +240,12 @@ while True:
         exit(1)
 
 if not appointment_booked_flag:
-    print(f"\n{TextColors.FAIL}FAILED: Appointment could not be booked, as no valid slot found to be available. Please try again after 1 minute.{TextColors.ENDC}")
+    print(f"\n{TextColors.FAIL}FAILED: Appointment could not be scheduled, as no valid slot found to be available. Please try again after 1 minute.{TextColors.ENDC}")
+else:
+    print(f"\n{TextColors.SUCCESS}Hurray!! Your appointment has been successfully scheduled. Following are the details:\n\n"
+          f"Apt. ID: {appointment_id}\n"
+          f"Centre: {cowinAPI.appointment_centre_booked}\n"
+          f"Date: {cowinAPI.appointment_date}\n"
+          f"Slot: {cowinAPI.appointment_slot_selected}{TextColors.ENDC}")
+    input("\nPress any key to exit...")
+    exit(1)

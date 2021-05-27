@@ -44,12 +44,13 @@
 # Table of Contents
 - [About The Project](#about-the-project)
 - [Customizable Options in the Program](#customizable-options-in-the-program)
-- [Screenshots](#screenshots)
+- [Screenshots of GUI App](#screenshots-of-gui-app) ![for windows users only](https://img.shields.io/badge/Operating%20System-Windows-green?style=plastic)
+- [Screenshots of Console App](#screenshots-of-console-app)
 - [Prerequisites](#prerequisites)
 	- [Installation (via ZIP file)](#installation-via-zip-file)
 	- [Installation (via EXE file)](#installation-via-exe-file)	![for windows users only](https://img.shields.io/badge/Operating%20System-Windows-green?style=plastic)
+- [Important Points to Keep In Mind](#important-points-to-keep-in-mind)
 - [Contributing](#contributing)
-- [Contact](#contact)
 
 
 <!-- ABOUT -->
@@ -74,8 +75,23 @@ As it's a difficult task to schedule an appointment for CoVid-Vaccine with only 
 10. Min Age Limit *(minimum age limit of the selected beneficiaries. All selected beneficiaries must belong to the same minimum age group, either 18+ or 45+)*
 
 
-<a name="screenshots"></a>
-## Screenshots
+<a name="screenshots-of-gui-app"></a>
+## Screenshots of GUI App
+
+![](./images/screenshots/7.png)
+
+
+![](./images/screenshots/8.png)
+
+
+![](./images/screenshots/9.png)
+
+
+![](./images/screenshots/10.png)
+
+
+<a name="screenshots-of-console-app"></a>
+## Screenshots of Console App
 
 ![](./images/screenshots/1.png)
 
@@ -134,10 +150,19 @@ As it's a difficult task to schedule an appointment for CoVid-Vaccine with only 
 <a name="installation-via-exe-file"></a>
 ### Installation (via EXE file)
 
-1. Navigate to the **'dist'** directory for the setup file or click [here](https://github.com/DivAgicha/CoWIN-Vaccine-Appointment-Booking/raw/master/dist/CovidVaccinationAppointmentScheduler-Setup-v1.2.2.exe) to download the same for Windows.
+1. Navigate to the **'dist'** directory for the setup file or click [here](https://github.com/DivAgicha/CoWIN-Vaccine-Appointment-Booking/raw/master/dist/CovidVaccinationAppointmentScheduler-Setup-v2.0.exe) to download the same for Windows.
 2. Double-click the installer file and follow the instructions to install the program.
 3. Upon successful installation you will find `Covid Vaccination Appointment Scheduler` folder in your `C:\Program Files (x86)\` directory.
 4. Open the folder and run `schedule_vaccination_appointment.exe` file.
+
+
+<!-- IMPORTANT -->
+<a name="important-points-to-keep-in-mind"></a>
+## Important Points to Keep In Mind
+- This is a proof of concept project. I do NOT endorse or condone, in any shape or form, automating any monitoring/booking tasks. **Developed for Educational Purpose; USE IT AT YOUR OWN RISK. I SHOULD NOT BE DEEMED RESPONSIBLE FOR ANY LEGAL CONCERNS.**
+- This goes without saying but, once you get your shot, please do help out any underprivileged people around you who may not have a laptop or the know-how. For instance any sort of domestic help, or the staff in your local grocery store, or literally the thousands of people who don't have the knowledge or luxury we do.
+- If you accidentally book a slot, don't worry. You can always login to the [Official portal](https://selfregistration.cowin.gov.in/) and cancel or re-schedule the booking. There is no option available for rescheduling or cancellation of Booking Slot in the Application. There will be an X symbol on the right-top corner for each beneficiary to cancel from CoWIN Portal.
+- There is no option to register new mobile or add beneficiaries. This can be used only after beneficiary has been added through the Official WebApp of [CoWIN](https://cowin.gov.in/).
 
 
 
@@ -152,16 +177,6 @@ Contributions are what make the open source community such an amazing place to l
 3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
-
-
-
-<!-- CONTACT -->
-<a name="contact"></a>
-## Contact
-
-Name - Divyansh Agicha - [div.agicha@gmail.com](mailto:div.agicha@gmail.com)
-
-Project Link: [https://github.com/DivAgicha/CoWIN-Vaccine-Appointment-Booking](https://github.com/DivAgicha/CoWIN-Vaccine-Appointment-Booking)
 
 
 

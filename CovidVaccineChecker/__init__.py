@@ -7,21 +7,48 @@ import random
 import requests
 import tabulate
 import datetime as dt
+from inspect import stack
 from hashlib import sha256
+import PySimpleGUI as simpleGUI
 from CovidVaccineChecker.captcha import captcha_builder
 
 
+def getCallingScriptFilename():
+    # caller_frame = stack()
+    # return caller_frame
+    caller_frame = stack()[-1]
+    return caller_frame[0].f_globals.get('__file__', None)
+
+
 class TextColors:
-    HEADER = '\033[95m'
-    SUCCESS = '\033[0;32m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-    BLACKONGREY = '\033[1;30;47m'
-    BLACKONYELLOW = '\033[1;30;43m'
-    REDONBLACK = '\033[1;31;40m'
-    ENDC = '\033[0m'
+    # print(f"\nCalling script: {os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__)))}")      # returns "(path)/__init__.py"
+
+    __calling_script = getCallingScriptFilename()
+    # print(f"Calling script: {__calling_script}")
+
+    if 'schedule_vaccination_appointment.py' in __calling_script:
+        HEADER = '\033[95m'
+        SUCCESS = '\033[0;32m'
+        WARNING = '\033[93m'
+        FAIL = '\033[91m'
+        BOLD = '\033[1m'
+        UNDERLINE = '\033[4m'
+        BLACKONGREY = '\033[1;30;47m'
+        BLACKONYELLOW = '\033[1;30;43m'
+        REDONBLACK = '\033[1;31;40m'
+        ENDC = '\033[0m'
+    else:
+        # case when __calling_script is 'scheduler_form.py'
+        HEADER = ''
+        SUCCESS = ''
+        WARNING = ''
+        FAIL = ''
+        BOLD = ''
+        UNDERLINE = ''
+        BLACKONGREY = ''
+        BLACKONYELLOW = ''
+        REDONBLACK = ''
+        ENDC = ''
 
 
 class CoWINAPI:
@@ -54,11 +81,14 @@ class CoWINAPI:
 
 
     def __init__(self, mobile):
-        self.mobile = mobile
+        self.mobile = mobile if mobile else ""
         self.token, self.state_id, self.state_name, self.district_id, self.district_name, self.pincode_preferences = None, None, None, None, None, None
         self.search_criteria, self.centre_preferences, self.slot_preference = None, list(), None
         self.appointment_date = (dt.datetime.today()).strftime("%d-%m-%Y")
         self.user_data = dict()
+
+        self.appointment_slot_selected = None                       # value of slot selected at runtime
+        self.appointment_centre_booked = None                       # name of centre booked for appointment
 
 
     @staticmethod
@@ -101,7 +131,7 @@ class CoWINAPI:
         #                                      for key, value in user_data.items() if key in display_keys])
 
         display_keys = ['mobile', 'state_id', 'district_id', 'pincode_preferences', 'search_criteria',
-                        'centre_preferences', 'slot_preference', 'appointment_date']
+                        'appointment_date', 'slot_preference', 'centre_preferences']
         key_value_list = list()
         for key, value in user_data.items():
             if key in display_keys:
@@ -134,9 +164,9 @@ class CoWINAPI:
                 "district_name": self.district_name,
                 "pincode_preferences": self.pincode_preferences,
                 "search_criteria": self.search_criteria,
-                "centre_preferences": self.centre_preferences,
+                "appointment_date": self.appointment_date,
                 "slot_preference": self.slot_preference,
-                "appointment_date": self.appointment_date
+                "centre_preferences": self.centre_preferences
             }
 
             with open(user_config_file, 'w') as json_file:
@@ -174,9 +204,9 @@ class CoWINAPI:
         self.district_name = self.user_data['district_name']
         self.pincode_preferences = self.user_data['pincode_preferences']
         self.search_criteria = self.user_data['search_criteria']
-        self.centre_preferences = self.user_data['centre_preferences']
-        self.slot_preference = self.user_data['slot_preference']
         self.appointment_date = self.user_data['appointment_date']
+        self.slot_preference = self.user_data['slot_preference']
+        self.centre_preferences = self.user_data['centre_preferences']
 
         self.auth_headers['Authorization'] = f'Bearer {self.token}'
 
@@ -258,7 +288,10 @@ class CoWINAPI:
                                    f"{TextColors.WARNING}(comma-separated in case of multiple){TextColors.ENDC}: ")
 
         if centre_preferences is not None and centre_preferences.strip() != "":
-            self.centre_preferences = centre_preferences.strip().replace(', ', ',').lower().split(",")
+            self.centre_preferences = centre_preferences.strip().replace(', ', ',').replace(' ,', ',').lower().split(",")
+            self.centre_preferences = [centre for centre in self.centre_preferences if centre != '']
+        else:
+            self.centre_preferences = []
 
         print(f"\n-->\tSaving user configuration to file '{user_config_file}'... ")
 
@@ -395,7 +428,7 @@ class CoWINAPI:
             self.update_user_config(['token'], [self.token], user_config_file)
 
 
-    def generateOTP(self):
+    def generateOTP(self, is_app_gui=False):
         payload = json.dumps({
             "mobile": self.mobile,
             "secret": self.secret
@@ -406,6 +439,8 @@ class CoWINAPI:
 
             try:
                 txnId = response.json()['txnId']
+                if is_app_gui:
+                    print("")
                 print(f"txnId: {txnId}\t(SUCCESS)")
                 break
             except Exception as e:
@@ -485,9 +520,9 @@ class CoWINAPI:
 
             if pincode_preferences is not None and pincode_preferences.strip() != "":
                 pincode_list = pincode_preferences.strip().replace(" ", "").split(",")
-                areValidPincodes = [bool(pincode_pattern.match(pincode)) for pincode in pincode_list]
+                areValidPincodes = [bool(pincode_pattern.match(pincode)) for pincode in pincode_list if pincode != '']
                 if False not in areValidPincodes:
-                    pincode_preferences = [int(pincode) for pincode in pincode_list]
+                    pincode_preferences = [int(pincode) for pincode in pincode_list if pincode != '']
                     break
                 else:
                     print(f"\n{TextColors.FAIL}Invalid input! Please enter correct pincode (rule: 6-digit number not starting with zero and no spaces in between){TextColors.ENDC}")
@@ -643,8 +678,8 @@ class CoWINAPI:
         return appointment_details
 
 
-    def generate_captcha(self, user_config_file):
-        print(f"\n{TextColors.HEADER}===================================== GENERATING CAPTCHA ====================================={TextColors.ENDC}")
+    def generate_captcha(self, user_config_file, is_app_gui):
+        print(f"\n{TextColors.HEADER}============================= GENERATING CAPTCHA ============================={TextColors.ENDC}")
 
         while True:
             response = requests.request("POST", self.captcha_url, headers=self.auth_headers)
@@ -656,6 +691,8 @@ class CoWINAPI:
                 return captcha_builder(response.json())
             else:
                 if "unauthenticated access" in response.text.lower():
+                    if is_app_gui:
+                        return '<REFRESH_TOKEN>'
                     self.generateUserToken(user_config_file, refresh_token=True)
                 else:
                     print(f"\n{TextColors.FAIL}FAILED ATTEMPT (message: could not generate captcha){TextColors.ENDC} (response: {response.text})... trying again in 1 sec.")
@@ -685,7 +722,7 @@ class CoWINAPI:
         return isValidCentre
 
 
-    def schedule_appointment(self, all_centres, ref_ids, dose_number, min_age_limit, user_config_file):
+    def schedule_appointment(self, all_centres, ref_ids, dose_number, min_age_limit, user_config_file, is_app_gui=False):
         appointment_booked_flag = False
         appointment_id = None
 
@@ -702,9 +739,12 @@ class CoWINAPI:
             # dummy_centre_check = 'aiims' in centre['name'].lower()
 
             if self.isValidCentre(centre, min_age_limit) or dummy_centre_check:
-                print(f"{TextColors.BOLD}{TextColors.WARNING}BOOKING{TextColors.ENDC}")
+                print(f"{TextColors.BOLD}{TextColors.WARNING}(VALID CENTRE FOUND - Booking Appointment...){TextColors.ENDC}")
                 if centre['available_capacity_dose'+str(dose_number)] >= len(ref_ids):
-                    captcha = self.generate_captcha(user_config_file)
+                    captcha = self.generate_captcha(user_config_file, is_app_gui)
+
+                    if captcha == '<REFRESH_TOKEN>' and is_app_gui:
+                        return False, '<REFRESH_TOKEN>'
 
                     print(f"\n{TextColors.BLACKONGREY}Entered Captcha Value: {captcha}{TextColors.ENDC}")
 
@@ -713,7 +753,7 @@ class CoWINAPI:
                         "center_id": centre['center_id'],
                         "session_id": centre['session_id'],
                         # "slot": self.slot_preference,
-                        "slot": self.getUserSlotPreference(centre),
+                        "slot": self.getUserSlotPreference(centre) if not is_app_gui else self.getUserSlotPreferencePopup(centre),
                         "beneficiaries": ref_ids,
                         "captcha": captcha
                     })
@@ -725,9 +765,12 @@ class CoWINAPI:
                         print(f"\n{TextColors.SUCCESS}[+]{TextColors.ENDC} SUCCESS: '{centre['name']}, {centre['address']}' centre successfully booked for {self.appointment_date} for selected beneficiaries")
                         print(f"\n{TextColors.BLACKONGREY}Appointment Confirmation Number: {appointment_id}{TextColors.ENDC}")
                         appointment_booked_flag = True
+                        self.appointment_centre_booked = centre['name']
                         break
                     except Exception as e:
                         if "unauthenticated access" in response.text.lower():
+                            if is_app_gui:
+                                return False, '<REFRESH_TOKEN>'
                             self.generateUserToken(user_config_file, refresh_token=True)
                         else:
                             print(f"\n{TextColors.FAIL}FAILED ATTEMPT (message: {e}){TextColors.ENDC} (response: {response.text})")
@@ -735,3 +778,120 @@ class CoWINAPI:
                     print(f"\n{TextColors.FAIL}FAILED: Vaccine shots available in this centre are less than the number of beneficiaries selected{TextColors.ENDC}")
 
         return appointment_booked_flag, appointment_id
+
+
+    """
+    -------------------------------------------------------------------------------------------------------------------------------
+    ------------------------------------------- New Methods TO SUPPORT GUI WINDOW CALLS -------------------------------------------
+    -------------------------------------------------------------------------------------------------------------------------------
+    """
+
+
+    def update_class_variable(self, key, value, update_user_config=False, user_config_file=None):
+        if key != 'token':
+            print(f"\n-->\tUpdating class variable '{key}' with value '{value}'... ")
+        else:
+            print(f"\n-->\tUpdating class variable '{key}'... ")
+
+        if key == 'mobile':
+            self.mobile = value
+        elif key == 'token':
+            self.token = value
+            self.auth_headers['Authorization'] = f'Bearer {self.token}'
+        elif key == 'state_id':
+            self.state_id = value
+        elif key == 'state_name':
+            self.state_name = value
+        elif key == 'district_id':
+            self.district_id = value
+        elif key == 'district_name':
+            self.district_name = value
+        elif key == 'pincode_preferences':
+            self.pincode_preferences = value
+        elif key == 'search_criteria':
+            self.search_criteria = value
+        elif key == 'centre_preferences':
+            self.centre_preferences = value
+        elif key == 'slot_preference':
+            self.slot_preference = value
+        elif key == 'appointment_date':
+            self.appointment_date = value
+
+        if update_user_config:
+            self.update_user_config([key], [value], user_config_file)
+
+
+    def get_stateDict(self):
+        print(f"\n{TextColors.WARNING}[+]{TextColors.ENDC} Getting list of all states")
+        response = requests.request("GET", self.getStates_url, headers=self.auth_headers)
+
+        if response.status_code == 200:
+            # print(response.text)
+            states = response.json()['states']
+            state_dict = dict()
+
+            for state in states:
+                state_dict[state['state_name']] = state['state_id']
+
+            return state_dict
+        else:
+            raise Exception(f"\n{TextColors.FAIL}FAILED ATTEMPT (message: Error getting states list){TextColors.ENDC} (response: {response.text}")
+
+
+    def get_districtDict(self, state_id):
+        print(f"\n{TextColors.WARNING}[+]{TextColors.ENDC} Getting list of all districts")
+        response = requests.request("GET", self.getDistricts_url + "/" + str(state_id), headers=self.auth_headers)
+
+        if response.status_code == 200:
+            districts = response.json()['districts']
+            district_dict = dict()
+
+            for district in districts:
+                district_dict[district['district_name']] = district['district_id']
+
+            return district_dict
+        else:
+            raise Exception(f"\n{TextColors.FAIL}FAILED ATTEMPT (message: Error getting districts list){TextColors.ENDC} (response: {response.text}")
+
+
+    @staticmethod
+    def get_lists_from_list(data_list, num_elements_in_sublist):
+        return [data_list[i:i+num_elements_in_sublist] for i in range(0, len(data_list), num_elements_in_sublist)]
+
+
+    def getUserSlotPreferencePopup(self, centre):
+        available_slots = centre['slots']
+
+        slots_string = "\n".join([f'{idx+1}. {slot}' for idx, slot in enumerate(available_slots)])
+
+        print(f"\n{TextColors.WARNING}Available slots at '{centre['name']}':\n{slots_string}{TextColors.ENDC}")
+
+        if self.slot_preference == 1:
+            random_index = random.randint(0, len(available_slots) - 1)
+            self.slot_selected = available_slots[random_index]
+            print(f"\n{TextColors.BLACKONGREY}RANDOM SLOT SELECTED: {self.slot_selected}{TextColors.ENDC}")
+        else:
+            radio_buttons_list = [simpleGUI.Radio(f'{slot}', key=f'radio{idx+1}', group_id=1) for idx, slot in enumerate(available_slots)]
+
+            window = simpleGUI.Window('Choose Slot', finalize=True).Layout([[simpleGUI.Text('Choose a slot from the following options to proceed')],
+                                                                            self.get_lists_from_list(radio_buttons_list, 1),
+                                                                            [simpleGUI.Submit()]])
+            window.finalize()
+            window['radio1'].update(value=True)
+
+            event, values = window.read()
+            # print(f"Event: {event}\nValues: {json.dumps(values, indent=4)}\n")
+
+            if event == simpleGUI.WIN_CLOSED:
+                simpleGUI.popup("Slot has not been selected! Invalid input detected from the user\n\nProgram will now exit...",
+                                title="Slot Selection Error")
+                exit(1)
+
+            for i in range(1, len(available_slots) + 1):
+                if values[f'radio{i}']:
+                    self.slot_selected = window[f'radio{i}'].Text
+
+            window.close()
+            print(f"\n{TextColors.BLACKONGREY}SLOT SELECTED: {self.slot_selected}{TextColors.ENDC}")
+
+        return self.slot_selected
