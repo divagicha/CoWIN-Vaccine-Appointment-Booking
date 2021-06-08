@@ -143,10 +143,6 @@ As it's a difficult task to schedule an appointment for CoVid-Vaccine with only 
 	```sh
 	python schedule_vaccination_appointment.py
 	```
-7. Run the following command for **GUI version of the App**
-	```sh
-	python scheduler_form.py
-	```
 
 
 
