@@ -35,8 +35,8 @@ cowinAPI = CoWINAPI(mobile)
 if not os.path.exists(os.path.join(cowinAPI.BASE_PROJECT_DIR, "user_data/")):
     os.makedirs(os.path.join(cowinAPI.BASE_PROJECT_DIR, "user_data/"))
 
-if not os.path.exists(os.path.join(cowinAPI.BASE_PROJECT_DIR, "captcha/")):
-    os.makedirs(os.path.join(cowinAPI.BASE_PROJECT_DIR, "captcha/"))
+# if not os.path.exists(os.path.join(cowinAPI.BASE_PROJECT_DIR, "captcha/")):
+#     os.makedirs(os.path.join(cowinAPI.BASE_PROJECT_DIR, "captcha/"))
 
 user_config_file = os.path.join(cowinAPI.BASE_PROJECT_DIR, "user_data/user_config_" + mobile + ".json")
 
@@ -166,10 +166,13 @@ while True:
 print(f"\n-->\tAttempting to book appointment {TextColors.WARNING}(every 3 seconds for next 4 minutes, i.e., total 80 attempts)"
       f"{TextColors.ENDC}")
 
+# input(f"\n{TextColors.BOLD}Note: keep an eye on the screen when the process starts, as when a valid centre "
+#       f"gets available you will be asked to enter {TextColors.WARNING}captcha{TextColors.ENDC} {TextColors.BOLD}and select "
+#       f"{TextColors.WARNING}time slot{TextColors.ENDC} {TextColors.BOLD}to book and confirm the appointment{TextColors.ENDC}"
+#       f"\n\nPress 'Enter' to continue...")
 input(f"\n{TextColors.BOLD}Note: keep an eye on the screen when the process starts, as when a valid centre "
-      f"gets available you will be asked to enter {TextColors.WARNING}captcha{TextColors.ENDC} {TextColors.BOLD}and select "
-      f"{TextColors.WARNING}time slot{TextColors.ENDC} {TextColors.BOLD}to book and confirm the appointment{TextColors.ENDC}"
-      f"\n\nPress 'Enter' to continue...")
+      f"gets available you will be asked to select a {TextColors.WARNING}time slot{TextColors.ENDC} "
+      f"{TextColors.BOLD}to book and confirm the appointment{TextColors.ENDC}\n\nPress 'Enter' to continue...")
 
 all_centres = cowinAPI.findCentresBySearchCriteria()
 

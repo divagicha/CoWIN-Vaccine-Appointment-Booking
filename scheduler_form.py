@@ -90,9 +90,9 @@ def create_window(finalize=False):
                    simpleGUI.Button('Next', key='next_min_age_limit')]
                ])],
 
-               [simpleGUI.Text('Made with ♥ (https://github.com/divagicha/\nCoWIN-Vaccine-Appointment-Booking)', auto_size_text=True, font='Courier 8'),
+               [simpleGUI.Text('Made with ' + u'\u2665' + ' (https://github.com/divagicha/\nCoWIN-Vaccine-Appointment-Booking)', auto_size_text=True, font='Courier 8'),
                 simpleGUI.Button('Reset Form', key='clear_values', tooltip="This will clear all the above values", size=(11, 1), button_color='Yellow'),
-                simpleGUI.Exit('Exit', size=(11, 1), button_color='Yellow')]]
+                simpleGUI.Exit('Exit', size=(11, 1), button_color='Yellow', pad=(10,0))]]
 
     colR1C2 = [[simpleGUI.Frame('Output', font='Any 8', layout=[
                   [simpleGUI.Output(size=(80, 35), key='console_output', font='Courier 10', echo_stdout_stderr=True)]
@@ -198,9 +198,12 @@ def isInputFieldActive(key):
 
 def attempt_to_schedule_appointment():
     global next_operation, attempts, all_centres
+    # simpleGUI.popup("Attempting to schedule appointment (every 3 seconds for next 4 minutes, i.e., total 80 attempts)\n\nNote: keep an "
+    #                 "eye on the screen when the process starts, as when a valid centre gets available you will be asked to enter CAPTCHA "
+    #                 "and select TIME SLOT to book and confirm your appointment", title="Scheduling Your Appointment")
     simpleGUI.popup("Attempting to schedule appointment (every 3 seconds for next 4 minutes, i.e., total 80 attempts)\n\nNote: keep an "
-                    "eye on the screen when the process starts, as when a valid centre gets available you will be asked to enter CAPTCHA "
-                    "and select TIME SLOT to book and confirm your appointment", title="Scheduling Your Appointment")
+                    "eye on the screen when the process starts, as when a valid centre gets available you will be asked to select a "
+                    "TIME SLOT to book and confirm your appointment", title="Scheduling Your Appointment")
 
     all_centres = cowinAPI.findCentresBySearchCriteria()
 
@@ -323,8 +326,8 @@ if __name__ == "__main__":
     if not os.path.exists(os.path.join(cowinAPI.BASE_PROJECT_DIR, "user_data/")):
         os.makedirs(os.path.join(cowinAPI.BASE_PROJECT_DIR, "user_data/"))
 
-    if not os.path.exists(os.path.join(cowinAPI.BASE_PROJECT_DIR, "captcha/")):
-        os.makedirs(os.path.join(cowinAPI.BASE_PROJECT_DIR, "captcha/"))
+    # if not os.path.exists(os.path.join(cowinAPI.BASE_PROJECT_DIR, "captcha/")):
+    #     os.makedirs(os.path.join(cowinAPI.BASE_PROJECT_DIR, "captcha/"))
 
     key_list = list(window.key_dict.keys())
     keys_to_remove = ['col1', 'col2', 'console_output', 'clear_values', 'Exit']

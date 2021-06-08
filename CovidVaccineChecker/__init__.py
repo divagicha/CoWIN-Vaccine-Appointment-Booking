@@ -1,6 +1,6 @@
 import os
 import re
-# import sys
+from sys import exit
 import json
 import time
 import random
@@ -10,7 +10,7 @@ import datetime as dt
 from inspect import stack
 from hashlib import sha256
 import PySimpleGUI as simpleGUI
-from CovidVaccineChecker.captcha import captcha_builder
+# from CovidVaccineChecker.captcha import captcha_builder
 
 
 def getCallingScriptFilename():
@@ -285,7 +285,7 @@ class CoWINAPI:
               f"at that centre only. You can still enter a centre's name below as your preference as there might be other sessions as well in "
               f"the same centre with different 'Min Age, Available Capacity and Slots' value.{TextColors.ENDC}")
         centre_preferences = input(f"\n-->\tEnter short/full centre name for centre preference "
-                                   f"{TextColors.WARNING}(comma-separated in case of multiple){TextColors.ENDC}: ")
+                                   f"{TextColors.WARNING}(comma-separated in case of multiple), CAN BE BLANK AS WELL{TextColors.ENDC}: ")
 
         if centre_preferences is not None and centre_preferences.strip() != "":
             self.centre_preferences = centre_preferences.strip().replace(', ', ',').replace(' ,', ',').lower().split(",")
@@ -678,25 +678,25 @@ class CoWINAPI:
         return appointment_details
 
 
-    def generate_captcha(self, user_config_file, is_app_gui):
-        print(f"\n{TextColors.HEADER}============================= GENERATING CAPTCHA ============================={TextColors.ENDC}")
-
-        while True:
-            response = requests.request("POST", self.captcha_url, headers=self.auth_headers)
-
-            if response.status_code == 200:
-                print(f"\nCAPTCHA GENERATED!!!")
-                # with open("response_captcha.json", "w") as captcha_json_file:
-                #     captcha_json_file.write(json.dumps(response.json(), indent=4))
-                return captcha_builder(response.json())
-            else:
-                if "unauthenticated access" in response.text.lower():
-                    if is_app_gui:
-                        return '<REFRESH_TOKEN>'
-                    self.generateUserToken(user_config_file, refresh_token=True)
-                else:
-                    print(f"\n{TextColors.FAIL}FAILED ATTEMPT (message: could not generate captcha){TextColors.ENDC} (response: {response.text})... trying again in 1 sec.")
-                    time.sleep(1)
+    # def generate_captcha(self, user_config_file, is_app_gui):
+    #     print(f"\n{TextColors.HEADER}============================= GENERATING CAPTCHA ============================={TextColors.ENDC}")
+    #
+    #     while True:
+    #         response = requests.request("POST", self.captcha_url, headers=self.auth_headers)
+    #
+    #         if response.status_code == 200:
+    #             print(f"\nCAPTCHA GENERATED!!!")
+    #             # with open("response_captcha.json", "w") as captcha_json_file:
+    #             #     captcha_json_file.write(json.dumps(response.json(), indent=4))
+    #             return captcha_builder(response.json())
+    #         else:
+    #             if "unauthenticated access" in response.text.lower():
+    #                 if is_app_gui:
+    #                     return '<REFRESH_TOKEN>'
+    #                 self.generateUserToken(user_config_file, refresh_token=True)
+    #             else:
+    #                 print(f"\n{TextColors.FAIL}FAILED ATTEMPT (message: could not generate captcha){TextColors.ENDC} (response: {response.text})... trying again in 1 sec.")
+    #                 time.sleep(1)
 
 
     def isValidCentre(self, centre, min_age_limit):
@@ -741,12 +741,12 @@ class CoWINAPI:
             if self.isValidCentre(centre, min_age_limit) or dummy_centre_check:
                 print(f"{TextColors.BOLD}{TextColors.WARNING}(VALID CENTRE FOUND - Booking Appointment...){TextColors.ENDC}")
                 if centre['available_capacity_dose'+str(dose_number)] >= len(ref_ids):
-                    captcha = self.generate_captcha(user_config_file, is_app_gui)
-
-                    if captcha == '<REFRESH_TOKEN>' and is_app_gui:
-                        return False, '<REFRESH_TOKEN>'
-
-                    print(f"\n{TextColors.BLACKONGREY}Entered Captcha Value: {captcha}{TextColors.ENDC}")
+                    # captcha = self.generate_captcha(user_config_file, is_app_gui)
+                    #
+                    # if captcha == '<REFRESH_TOKEN>' and is_app_gui:
+                    #     return False, '<REFRESH_TOKEN>'
+                    #
+                    # print(f"\n{TextColors.BLACKONGREY}Entered Captcha Value: {captcha}{TextColors.ENDC}")
 
                     payload = json.dumps({
                         "dose": dose_number,
@@ -755,7 +755,7 @@ class CoWINAPI:
                         # "slot": self.slot_preference,
                         "slot": self.getUserSlotPreference(centre) if not is_app_gui else self.getUserSlotPreferencePopup(centre),
                         "beneficiaries": ref_ids,
-                        "captcha": captcha
+                        # "captcha": captcha
                     })
 
                     response = requests.request("POST", self.schedule_url, headers=self.auth_headers, data=payload)
