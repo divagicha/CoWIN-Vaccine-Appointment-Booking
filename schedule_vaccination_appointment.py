@@ -52,6 +52,9 @@ if os.path.exists(user_config_file):
 
         if answer.lower().strip() == 'y':
             cowinAPI.use_existing_user_config(user_config_file)
+            if not cowinAPI.is_appointment_date_valid():
+                print(f"\n{TextColors.WARNING}[+]{TextColors.ENDC} Incorrect Appointment Date found in configuration! Kindly change the appointment date to proceed...")
+                cowinAPI.changeAppointmentDate(user_config_file, load_values_from_existing_config_first=False)
             break
         elif answer.lower().strip() == 'n':
             cowinAPI.create_new_user_config(user_config_file)
@@ -174,6 +177,11 @@ input(f"\n{TextColors.BOLD}Note: keep an eye on the screen when the process star
       f"gets available you will be asked to select a {TextColors.WARNING}time slot{TextColors.ENDC} "
       f"{TextColors.BOLD}to book and confirm the appointment{TextColors.ENDC}\n\nPress 'Enter' to continue...")
 
+if not cowinAPI.is_appointment_date_valid():
+    print(f"\n{TextColors.WARNING}[+]{TextColors.ENDC} Incorrect Appointment Date found in configuration! Kindly change the appointment date to proceed...")
+    cowinAPI.changeAppointmentDate(user_config_file, load_values_from_existing_config_first=False)
+    print("")
+
 all_centres = cowinAPI.findCentresBySearchCriteria()
 
 if len(all_centres) == 0:
@@ -187,8 +195,12 @@ if len(all_centres) == 0:
                        f"Change appointment date (c) / Change search criteria (s)){TextColors.ENDC}: ")
 
         if answer.lower().strip() == 'y':
-            # cowinAPI.use_existing_user_config(user_config_file)
-            print(f"\n{TextColors.WARNING}[+]{TextColors.ENDC} Continuing with existing configuration", end="")
+            if not cowinAPI.is_appointment_date_valid():
+                print(f"\n{TextColors.WARNING}[+]{TextColors.ENDC} Incorrect Appointment Date found in configuration! Kindly change the appointment date to proceed...")
+                cowinAPI.changeAppointmentDate(user_config_file, load_values_from_existing_config_first=False)
+                print(f"\n{TextColors.WARNING}[+]{TextColors.ENDC} Continuing with updated configuration", end="")
+            else:
+                print(f"\n{TextColors.WARNING}[+]{TextColors.ENDC} Continuing with existing configuration", end="")
             break
         elif answer.lower().strip() == 'c':
             cowinAPI.changeAppointmentDate(user_config_file, load_values_from_existing_config_first=False)

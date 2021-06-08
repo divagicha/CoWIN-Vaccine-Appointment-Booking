@@ -150,7 +150,7 @@ As it's a difficult task to schedule an appointment for CoVid-Vaccine with only 
 <a name="installation-via-exe-file"></a>
 ### Installation (via EXE file)
 
-1. Navigate to the **'dist'** directory for the setup file or click [here](https://github.com/DivAgicha/CoWIN-Vaccine-Appointment-Booking/raw/master/dist/CovidVaccinationAppointmentScheduler-Setup-v2.1.exe) to download the same for Windows.
+1. Navigate to the **'dist'** directory for the setup file or click [here](https://github.com/DivAgicha/CoWIN-Vaccine-Appointment-Booking/raw/master/dist/CovidVaccinationAppointmentScheduler-Setup-v2.2.exe) to download the same for Windows.
 2. Double-click the installer file and follow the instructions to install the program.
 3. Upon successful installation you will find `Covid Vaccination Appointment Scheduler` folder in your `C:\Program Files (x86)\` directory.
 4. Open the folder and run `schedule_vaccination_appointment.exe` (Console App) or `scheduler_form.exe` (GUI App) file.

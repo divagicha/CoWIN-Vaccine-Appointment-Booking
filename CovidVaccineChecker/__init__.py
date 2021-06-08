@@ -247,17 +247,21 @@ class CoWINAPI:
                 print(f"\n{TextColors.FAIL}Invalid input! Please enter one of the above two choices{TextColors.ENDC}")
 
         date = input("\n-->\tEnter appointment date to check available slots for that date "
-                     f"{TextColors.WARNING}(Format: dd-mm-yyyy, defaults to today if nothing "
-                     f"or incorrect date format is entered){TextColors.ENDC}: ")
+                     f"{TextColors.WARNING}(Format: dd-mm-yyyy, can be today's date or of the future, "
+                     f"defaults to today if nothing or incorrect date format is entered){TextColors.ENDC}: ")
 
         if date.strip() != "":
             try:
                 self.appointment_date = dt.datetime.strptime(date, '%d-%m-%Y').strftime('%d-%m-%Y')
+
+                if not self.is_appointment_date_valid():
+                    self.appointment_date = (dt.datetime.today()).strftime('%d-%m-%Y')
+                    print(f"\n{TextColors.FAIL}Incorrect date entered. Defaulted to today's date '{self.appointment_date}'...{TextColors.ENDC}")
             except ValueError:
-                self.appointment_date = (dt.datetime.today()).strftime("%d-%m-%Y")
+                self.appointment_date = (dt.datetime.today()).strftime('%d-%m-%Y')
                 print(f"\n{TextColors.FAIL}Incorrect date format, should have been dd-mm-yyyy. Defaulted to today's date '{self.appointment_date}'...{TextColors.ENDC}")
         else:
-            self.appointment_date = (dt.datetime.today()).strftime("%d-%m-%Y")
+            self.appointment_date = (dt.datetime.today()).strftime('%d-%m-%Y')
             print(f"\n{TextColors.FAIL}No date entered. Defaulted to today's date '{self.appointment_date}'...{TextColors.ENDC}")
 
         while True:
@@ -298,22 +302,32 @@ class CoWINAPI:
         self.save_user_config(user_config_file)
 
 
+    def is_appointment_date_valid(self):
+        today = dt.datetime.today().strftime('%d-%m-%Y')
+
+        return bool(dt.datetime.strptime(self.appointment_date, '%d-%m-%Y') >= dt.datetime.strptime(today, '%d-%m-%Y'))
+
+
     def changeAppointmentDate(self, user_config_file, load_values_from_existing_config_first = True):
         if load_values_from_existing_config_first:
             self.use_existing_user_config(user_config_file)        # to initialise all other variables too, before calling update_user_config()
 
         date = input("\n-->\tEnter appointment date to check available slots for that date "
-                     f"{TextColors.WARNING}(Format: dd-mm-yyyy, defaults to today if nothing "
-                     f"or incorrect date format is entered){TextColors.ENDC}: ")
+                     f"{TextColors.WARNING}(Format: dd-mm-yyyy, can be today's date or of the future, "
+                     f"defaults to today if nothing or incorrect date format is entered){TextColors.ENDC}: ")
 
         if date.strip() != "":
             try:
                 self.appointment_date = dt.datetime.strptime(date, '%d-%m-%Y').strftime('%d-%m-%Y')
+
+                if not self.is_appointment_date_valid():
+                    self.appointment_date = (dt.datetime.today()).strftime('%d-%m-%Y')
+                    print(f"\n{TextColors.FAIL}Incorrect date entered. Defaulted to today's date '{self.appointment_date}'...{TextColors.ENDC}")
             except ValueError:
-                self.appointment_date = (dt.datetime.today()).strftime("%d-%m-%Y")
+                self.appointment_date = (dt.datetime.today()).strftime('%d-%m-%Y')
                 print(f"\n{TextColors.FAIL}Incorrect date format, should have been dd-mm-yyyy. Defaulted to today's date '{self.appointment_date}'...{TextColors.ENDC}")
         else:
-            self.appointment_date = (dt.datetime.today()).strftime("%d-%m-%Y")
+            self.appointment_date = (dt.datetime.today()).strftime('%d-%m-%Y')
             print(f"\n{TextColors.FAIL}No date entered. Defaulted to today's date '{self.appointment_date}'...{TextColors.ENDC}")
 
         self.update_user_config(['appointment_date'], [self.appointment_date], user_config_file)
@@ -397,10 +411,16 @@ class CoWINAPI:
         if refresh_token:
             print(f"\n{TextColors.FAIL}Previous TOKEN Expired!!!{TextColors.ENDC}")
 
-        while True:
-            print(f"\n-->\tGenerating OTP {TextColors.WARNING}(There might be some delay in receiving the OTP, please wait atleast 2 minutes){TextColors.ENDC}\n")
+        print(f"\n-->\tGenerating OTP {TextColors.WARNING}(There might be some delay in receiving the OTP, please wait atleast 2 minutes){TextColors.ENDC}")
+        txnId = ""
 
-            txnId = self.generateOTP()
+        while True:
+            txnId_new = self.generateOTP()
+
+            if txnId_new == txnId:
+                print(f"{TextColors.WARNING}[+]{TextColors.ENDC} Last generated OTP still valid! New OTP will be generated only after expiration time of 3 mins.")
+
+            txnId = txnId_new
 
             otp = input("\n-->\tEnter OTP received on your mobile phone (Press 'Enter' to resend OTP): ")
 
@@ -428,7 +448,7 @@ class CoWINAPI:
             self.update_user_config(['token'], [self.token], user_config_file)
 
 
-    def generateOTP(self, is_app_gui=False):
+    def generateOTP(self):
         payload = json.dumps({
             "mobile": self.mobile,
             "secret": self.secret
@@ -439,9 +459,7 @@ class CoWINAPI:
 
             try:
                 txnId = response.json()['txnId']
-                if is_app_gui:
-                    print("")
-                print(f"txnId: {txnId}\t(SUCCESS)")
+                print(f"\ntxnId: {txnId}\t(SUCCESS)")
                 break
             except Exception as e:
                 print(f"{TextColors.FAIL}FAILED ATTEMPT (message: {e}){TextColors.ENDC} (response: {response.text})... trying again in 3 seconds")
@@ -868,8 +886,8 @@ class CoWINAPI:
 
         if self.slot_preference == 1:
             random_index = random.randint(0, len(available_slots) - 1)
-            self.slot_selected = available_slots[random_index]
-            print(f"\n{TextColors.BLACKONGREY}RANDOM SLOT SELECTED: {self.slot_selected}{TextColors.ENDC}")
+            self.appointment_slot_selected = available_slots[random_index]
+            print(f"\n{TextColors.BLACKONGREY}RANDOM SLOT SELECTED: {self.appointment_slot_selected}{TextColors.ENDC}")
         else:
             radio_buttons_list = [simpleGUI.Radio(f'{slot}', key=f'radio{idx+1}', group_id=1) for idx, slot in enumerate(available_slots)]
 
@@ -889,9 +907,9 @@ class CoWINAPI:
 
             for i in range(1, len(available_slots) + 1):
                 if values[f'radio{i}']:
-                    self.slot_selected = window[f'radio{i}'].Text
+                    self.appointment_slot_selected = window[f'radio{i}'].Text
 
             window.close()
-            print(f"\n{TextColors.BLACKONGREY}SLOT SELECTED: {self.slot_selected}{TextColors.ENDC}")
+            print(f"\n{TextColors.BLACKONGREY}SLOT SELECTED: {self.appointment_slot_selected}{TextColors.ENDC}")
 
-        return self.slot_selected
+        return self.appointment_slot_selected

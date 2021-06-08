@@ -192,8 +192,14 @@ def clear_values():
     window['min_age_limit'].update(value='-select-')
 
 
-def isInputFieldActive(key):
+def is_input_field_active(key):
     return window[key].TKEntry['state'] != 'readonly'
+
+
+def is_appointment_date_valid():
+    today = dt.datetime.today().strftime('%d-%m-%Y')
+
+    return bool(dt.datetime.strptime(cowinAPI.appointment_date, '%d-%m-%Y') >= dt.datetime.strptime(today, '%d-%m-%Y'))
 
 
 def attempt_to_schedule_appointment():
@@ -271,7 +277,7 @@ def call_schedule_appointment():
                     print("Previous TOKEN Expired!!!")
                     print("\n-->\tGenerating OTP (There might be some delay in receiving the OTP, please wait atleast 2 minutes)")
                     refresh_token = True
-                    txnId = cowinAPI.generateOTP(is_app_gui=True)
+                    txnId = cowinAPI.generateOTP()
                     next_operation = 'call_schedule_appointment'
                     window['otp'].update(value='')
                     window['validate'].update(text='Resend')
@@ -364,7 +370,7 @@ if __name__ == "__main__":
 
             last_operation = 'clear_values'
         elif event == 'mobile':
-            if mobile_number_pattern.match(values['mobile']) and isInputFieldActive('mobile'):
+            if mobile_number_pattern.match(values['mobile']) and is_input_field_active('mobile'):
                 enable_element('submit')
             else:
                 disable_element('submit')
@@ -383,13 +389,14 @@ if __name__ == "__main__":
                     show_arrow('arrow_3')
                 except Exception as e:
                     simpleGUI.popup("Misconfigured Config File Error", f"User config file '{user_config_file}' exists but is misconfigured. Kindly enter the details below to create config file again", f"Error: {e}")
-                    txnId = cowinAPI.generateOTP(is_app_gui=True)
+                    txnId = cowinAPI.generateOTP()
                     window['otp'].update(value='')
                     window['validate'].update(text='Resend')
                     enable_element(['otp', 'validate'], update_others=True)
                     show_arrow('arrow_2')
             else:
-                txnId = cowinAPI.generateOTP(is_app_gui=True)
+                print("\n-->\tGenerating OTP (There might be some delay in receiving the OTP, please wait atleast 2 minutes)")
+                txnId = cowinAPI.generateOTP()
                 window['otp'].update(value='')
                 window['validate'].update(text='Resend')
                 enable_element(['otp', 'validate'], update_others=True)
@@ -397,13 +404,13 @@ if __name__ == "__main__":
 
             last_operation = 'submit'
         elif event == 'otp':
-            if len(values['otp'].strip()) == 0 and isInputFieldActive('otp'):
+            if len(values['otp'].strip()) == 0 and is_input_field_active('otp'):
                 window['validate'].update(text='Resend')
                 enable_element(['validate'])
             else:
                 window['validate'].update(text='Validate')
 
-                if len(values['otp'].strip()) == 6 and isInputFieldActive('otp'):
+                if len(values['otp'].strip()) == 6 and is_input_field_active('otp'):
                     enable_element('validate')
                 else:
                     disable_element(['validate'])
@@ -412,7 +419,10 @@ if __name__ == "__main__":
         elif event == 'validate':
             disable_element(['otp', 'validate'])
             if len(values['otp']) == 0:
-                txnId = cowinAPI.generateOTP(is_app_gui=True)
+                txnId_new = cowinAPI.generateOTP()
+                if txnId_new == txnId:
+                    print("[+] Last generated OTP still valid! New OTP will be generated only after expiration time of 3 mins.")
+                txnId = txnId_new
                 window['otp'].update(value='')
                 window['validate'].update(text='Resend')
                 enable_element(['otp', 'validate'], update_others=True)
@@ -463,10 +473,23 @@ if __name__ == "__main__":
 
             last_operation = 'validate'
         elif event == 'continue':
-            disable_element(['y', 'n', 'c', 's', 't', 'continue'])
+            if not values['y']:
+                disable_element(['y', 'n', 'c', 's', 't', 'continue'])
 
             if values['y']:
+                if not is_appointment_date_valid():
+                    simpleGUI.popup("Kindly choose 'Change appointment date' option and select a valid date "
+                                    "(can be today's date or of the future)", title="Invalid Appointment Date")
+                    continue
+
+                disable_element(['y', 'n', 'c', 's', 't', 'continue'])
+
                 if next_operation == 'schedule_appointment':
+                    enable_element('', update_others=True)
+                    show_arrow('')
+                    attempt_to_schedule_appointment()
+                elif next_operation == 'change_date_and_schedule_appointment':
+                    next_operation = ''
                     enable_element('', update_others=True)
                     show_arrow('')
                     attempt_to_schedule_appointment()
@@ -505,7 +528,7 @@ if __name__ == "__main__":
                         print("Previous TOKEN Expired!!!")
                         print("\n-->\tGenerating OTP (There might be some delay in receiving the OTP, please wait atleast 2 minutes)")
                         refresh_token = True
-                        txnId = cowinAPI.generateOTP(is_app_gui=True)
+                        txnId = cowinAPI.generateOTP()
                         next_operation = 'continue'
                         window['otp'].update(value='')
                         window['validate'].update(text='Resend')
@@ -526,7 +549,7 @@ if __name__ == "__main__":
                     print("Previous TOKEN Expired!!!")
                     print("\n-->\tGenerating OTP (There might be some delay in receiving the OTP, please wait atleast 2 minutes)")
                     refresh_token = True
-                    txnId = cowinAPI.generateOTP(is_app_gui=True)
+                    txnId = cowinAPI.generateOTP()
                     window['otp'].update(value='')
                     window['validate'].update(text='Resend')
                     enable_element(['otp', 'validate'], update_others=True)
@@ -565,7 +588,7 @@ if __name__ == "__main__":
                 print("Previous TOKEN Expired!!!")
                 print("\n-->\tGenerating OTP (There might be some delay in receiving the OTP, please wait atleast 2 minutes)")
                 refresh_token = True
-                txnId = cowinAPI.generateOTP(is_app_gui=True)
+                txnId = cowinAPI.generateOTP()
                 next_operation = 'next_state_name'
                 window['otp'].update(value='')
                 window['validate'].update(text='Resend')
@@ -581,7 +604,7 @@ if __name__ == "__main__":
             enable_element('pincode_preferences')
             show_arrow('arrow_6')
 
-            if values['pincode_preferences'].strip() != "" and isInputFieldActive('pincode_preferences'):
+            if values['pincode_preferences'].strip() != "" and is_input_field_active('pincode_preferences'):
                 pincode_list = values['pincode_preferences'].strip().replace(" ", "").split(",")
                 areValidPincodes = [bool(pincode_pattern.match(pincode)) for pincode in pincode_list if pincode != '']
                 if False not in areValidPincodes:
@@ -590,7 +613,7 @@ if __name__ == "__main__":
 
             last_operation = 'next_district_name'
         elif event == 'pincode_preferences':
-            if values['pincode_preferences'].strip() != "" and isInputFieldActive('pincode_preferences'):
+            if values['pincode_preferences'].strip() != "" and is_input_field_active('pincode_preferences'):
                 pincode_list = values['pincode_preferences'].strip().replace(" ", "").split(",")
                 areValidPincodes = [bool(pincode_pattern.match(pincode)) for pincode in pincode_list if pincode != '']
                 if False not in areValidPincodes:
@@ -642,6 +665,10 @@ if __name__ == "__main__":
                 # enable_element('', update_others=True)
                 # show_arrow('')
                 # attempt_to_schedule_appointment()
+            elif next_operation == 'change_date_and_schedule_appointment':
+                enable_element(['y', 'c', 'continue'], update_others=True)
+                show_arrow('arrow_3')
+                window['y'].update(value=True)
             elif last_operation == 'c':
                 enable_element(['y', 'n', 'c', 's', 't', 'continue'], update_others=True)
                 show_arrow('arrow_3')
@@ -714,7 +741,7 @@ if __name__ == "__main__":
                 print("Previous TOKEN Expired!!!")
                 print("\n-->\tGenerating OTP (There might be some delay in receiving the OTP, please wait atleast 2 minutes)")
                 refresh_token = True
-                txnId = cowinAPI.generateOTP(is_app_gui=True)
+                txnId = cowinAPI.generateOTP()
                 next_operation = 'next_centre_preferences'
                 window['otp'].update(value='')
                 window['validate'].update(text='Resend')
@@ -723,7 +750,7 @@ if __name__ == "__main__":
 
             last_operation = 'next_centre_preferences'
         elif event == 'reference_ids':
-            if values['reference_ids'].strip() != "" and isInputFieldActive('reference_ids'):
+            if values['reference_ids'].strip() != "" and is_input_field_active('reference_ids'):
                 reference_ids = values['reference_ids'].strip().replace(" ", "").split(",")
                 # print(f"reference_ids: {reference_ids}")
                 try:
@@ -760,9 +787,17 @@ if __name__ == "__main__":
             if values['min_age_limit'] != '-select-':
                 min_age_limit = 18 if values['min_age_limit'] == '18+ Age Group' else 45
                 disable_element(['min_age_limit', 'next_min_age_limit'])
-                show_arrow('')
 
-                attempt_to_schedule_appointment()
+                if is_appointment_date_valid():
+                    show_arrow('')
+                    attempt_to_schedule_appointment()
+                else:
+                    simpleGUI.popup("Kindly choose 'Change appointment date' option and select a valid date "
+                                    "(can be today's date or of the future)", title="Invalid Appointment Date")
+                    enable_element(['y', 'c', 'continue'], update_others=True)
+                    show_arrow('arrow_3')
+                    window['c'].update(value=True)
+                    next_operation = 'change_date_and_schedule_appointment'
 
             last_operation = 'next_min_age_limit'
 
