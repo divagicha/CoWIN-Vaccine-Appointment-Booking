@@ -12,6 +12,7 @@ simpleGUI.theme("DarkBlue")
 date_now = dt.datetime.today()
 pincode_pattern = re.compile("^[1-9][0-9]{5}$")
 mobile_number_pattern = re.compile("^[6-9][0-9]{9}$")
+# beneficiary_index_pattern = re.compile("^[1-4]$")
 
 
 def create_window(finalize=False):
@@ -77,7 +78,7 @@ def create_window(finalize=False):
 
                [simpleGUI.Frame('Booking Details', font='Any 8', title_color='yellow', element_justification='center', layout=[
                   [simpleGUI.Text(simpleGUI.SYMBOL_RIGHT_ARROWHEAD, key='arrow_11', text_color='Red', size=(1,1)),
-                   simpleGUI.Text('Enter Beneficiaries (Index) 🛈', size=(22, 1), tooltip="Choices: 1/2/3/4 (comma-separated in case of multiple).Enter '0' to select all"),
+                   simpleGUI.Text('Enter Beneficiaries (Index) 🛈', size=(22, 1), tooltip="Choices: 1/2/3/4 (comma-separated in case of multiple). Enter '0' to select all"),
                    simpleGUI.Input(key='reference_ids', size=(28, 1), enable_events=True, text_color='Black', background_color='White', disabled_readonly_background_color='Grey'),
                    simpleGUI.Button('Next', key='next_reference_ids')],
                   [simpleGUI.Text(simpleGUI.SYMBOL_RIGHT_ARROWHEAD, key='arrow_12', text_color='Red', size=(1,1)),
@@ -87,7 +88,11 @@ def create_window(finalize=False):
                   [simpleGUI.Text(simpleGUI.SYMBOL_RIGHT_ARROWHEAD, key='arrow_13', text_color='Red', size=(1,1)),
                    simpleGUI.Text('Select Minimum Age Group', size=(22, 1)),
                    simpleGUI.Combo(key='min_age_limit', values=['18+ Age Group', '45+ Age Group'], default_value='-select-', size=(26, 1)),
-                   simpleGUI.Button('Next', key='next_min_age_limit')]
+                   simpleGUI.Button('Next', key='next_min_age_limit')],
+                  [simpleGUI.Text(simpleGUI.SYMBOL_RIGHT_ARROWHEAD, key='arrow_14', text_color='Red', size=(1,1)),
+                   simpleGUI.Text('Select Vaccine Type', size=(22, 1)),
+                   simpleGUI.Combo(key='vaccine_preference', values=['-any-', 'Covaxin', 'Covishield'], default_value='-any-', size=(26, 1)),
+                   simpleGUI.Button('Next', key='next_vaccine_preference')]
                ])],
 
                [simpleGUI.Text('Made with ' + u'\u2665' + ' (https://github.com/divagicha/\nCoWIN-Vaccine-Appointment-Booking)', auto_size_text=True, font='Courier 8'),
@@ -95,7 +100,7 @@ def create_window(finalize=False):
                 simpleGUI.Exit('Exit', size=(11, 1), button_color='Yellow', pad=(10,0))]]
 
     colR1C2 = [[simpleGUI.Frame('Output', font='Any 8', layout=[
-                  [simpleGUI.Output(size=(80, 35), key='console_output', font='Courier 10', echo_stdout_stderr=True)]
+                  [simpleGUI.Output(size=(80, 36), key='console_output', font='Courier 10', echo_stdout_stderr=True)]
                ])]]
 
     layout = [[simpleGUI.Column(colR1C1, background_color='', element_justification='left', key='col1'),
@@ -196,12 +201,6 @@ def is_input_field_active(key):
     return window[key].TKEntry['state'] != 'readonly'
 
 
-def is_appointment_date_valid():
-    today = dt.datetime.today().strftime('%d-%m-%Y')
-
-    return bool(dt.datetime.strptime(cowinAPI.appointment_date, '%d-%m-%Y') >= dt.datetime.strptime(today, '%d-%m-%Y'))
-
-
 def attempt_to_schedule_appointment():
     global next_operation, attempts, all_centres
     # simpleGUI.popup("Attempting to schedule appointment (every 3 seconds for next 4 minutes, i.e., total 80 attempts)\n\nNote: keep an "
@@ -227,28 +226,8 @@ def attempt_to_schedule_appointment():
 
         next_operation = 'schedule_appointment'
         return
-
-        # if answer.lower().strip() == 'y':
-        #     # cowinAPI.use_existing_user_config(user_config_file)
-        #     print("\n[+] Continuing with existing configuration", end="")
-        #     break
-        # elif answer.lower().strip() == 'c':
-        #     cowinAPI.changeAppointmentDate(user_config_file, load_values_from_existing_config_first=False)
-        #     print("\n[+] Appointment date changed successfully", end="")
-        #     break
-        # elif answer.lower().strip() == 's':
-        #     cowinAPI.changeSearchCriteria(user_config_file, load_values_from_existing_config_first=False)
-        #     print("\n[+] Search criteria changed successfully", end="")
-        #     break
-        # else:
-        #     print("\nInvalid input! Please enter a valid option to continue")
     else:
         next_operation = ''
-        # centres_list = [{"Name": centre['name'], "District": centre['district_name'], "Pincode": centre['pincode'], "Vaccine Name": centre['vaccine'],
-        #                  "Fee Type": centre['fee_type'], "Min Age": centre['min_age_limit'], "Available Capacity": centre['available_capacity'],
-        #                  "Slots": "\n".join(centre['slots'])} for centre in all_centres]
-        #
-        # cowinAPI.display_table(centres_list)
 
         print(f"\nTotal Centres Found: {len(all_centres)}", end="")
 
@@ -269,7 +248,8 @@ def call_schedule_appointment():
                 print(f"\n\nATTEMPT {attempts + 1}:")
                 appointment_booked_flag, appointment_id = cowinAPI.schedule_appointment(all_centres, reference_ids,
                                                                                         dose_number, min_age_limit,
-                                                                                        user_config_file, is_app_gui=True)
+                                                                                        vaccine_preference, user_config_file,
+                                                                                        is_app_gui=True)
 
                 if appointment_booked_flag:
                     break
@@ -305,13 +285,7 @@ def call_schedule_appointment():
             print("\n(FAILED: Scheduling interrupted by user)")
             exit(1)
 
-    if not appointment_booked_flag:
-        print("\nour appointment could not be scheduled, as no valid slot found to be available.\n\n"
-              "Please try again after 1 minute...")
-        simpleGUI.popup(f"Your appointment could not be scheduled, as no valid slot found to be available.\n\n"
-                        f"Please try again after 1 minute...",
-                        title='Appointment Not Scheduled')
-    else:
+    if appointment_booked_flag:
         print(f"Hurray!! Your appointment has been successfully scheduled. Following are the details:\n\n"
               f"Apt. ID: {appointment_id}\n"
               f"Centre: {cowinAPI.appointment_centre_booked}\n"
@@ -323,6 +297,11 @@ def call_schedule_appointment():
                         f"Date: {cowinAPI.appointment_date}\n"
                         f"Slot: {cowinAPI.appointment_slot_selected}",
                         title='Appointment Successfully Booked')
+    else:
+        print("\nYour appointment could not be scheduled, as no valid slot found to be available.\n\n"
+              "Please try again after 1 minute...")
+        simpleGUI.popup(f"Your appointment could not be scheduled, as no valid slot found to be available.\n\n"
+                        f"Please try again after 1 minute...", title='Appointment Not Scheduled')
 
 
 if __name__ == "__main__":
@@ -337,7 +316,8 @@ if __name__ == "__main__":
 
     key_list = list(window.key_dict.keys())
     keys_to_remove = ['col1', 'col2', 'console_output', 'clear_values', 'Exit']
-    arrow_keys = ['arrow_1', 'arrow_2', 'arrow_3', 'arrow_4', 'arrow_5', 'arrow_6', 'arrow_7', 'arrow_8', 'arrow_9', 'arrow_10', 'arrow_11', 'arrow_12', 'arrow_13']
+    arrow_keys = ['arrow_1', 'arrow_2', 'arrow_3', 'arrow_4', 'arrow_5', 'arrow_6', 'arrow_7', 'arrow_8',
+                  'arrow_9', 'arrow_10', 'arrow_11', 'arrow_12', 'arrow_13', 'arrow_14']
     # enable_event_element_keys = ['mobile', 'otp', 'pincode_preferences', 'reference_ids']
     for key in keys_to_remove + arrow_keys:
         key_list.remove(key)
@@ -477,7 +457,7 @@ if __name__ == "__main__":
                 disable_element(['y', 'n', 'c', 's', 't', 'continue'])
 
             if values['y']:
-                if not is_appointment_date_valid():
+                if not cowinAPI.is_appointment_date_valid():
                     simpleGUI.popup("Kindly choose 'Change appointment date' option and select a valid date "
                                     "(can be today's date or of the future)", title="Invalid Appointment Date")
                     continue
@@ -751,27 +731,47 @@ if __name__ == "__main__":
             last_operation = 'next_centre_preferences'
         elif event == 'reference_ids':
             if values['reference_ids'].strip() != "" and is_input_field_active('reference_ids'):
-                reference_ids = values['reference_ids'].strip().replace(" ", "").split(",")
-                # print(f"reference_ids: {reference_ids}")
-                try:
-                    areValidIndexes = [bool(0 <= int(index) <= len(beneficiaries)) for index in reference_ids if index != '']
-                    if False not in areValidIndexes:
-                        reference_ids = [int(index) for index in reference_ids if index != '']
-                        enable_element('next_reference_ids')
-                    else:
-                        disable_element('next_reference_ids')
-                except Exception as e:
-                    print("\nInvalid character found!! Enter only comma-separated numbers")
+                if values['reference_ids'].strip() == '0':
+                    reference_ids = 0
+                    enable_element('next_reference_ids')
+                elif '0' in values['reference_ids'].strip():
+                    print(f"\n[+] Please enter correct indexes to proceed to booking. Don't club '0' with any other option")
                     disable_element('next_reference_ids')
+                else:
+                    reference_ids = values['reference_ids'].strip().replace(" ", "").split(",")
+                    reference_ids = list(filter(None, reference_ids))  # to filter out all empty strings
+                    # beneficiary_index_pattern = re.compile("^[1-4]$")
+                    regex_pattern = f"^[1-{len(beneficiaries)}]$"
+                    beneficiary_index_pattern = re.compile(regex_pattern)
+                    try:
+                        areValidIndexes = [bool(beneficiary_index_pattern.match(index)) for index in reference_ids]
+                        if False not in areValidIndexes and len(areValidIndexes) != 0:
+                            reference_ids = list(map(int, reference_ids))
+                            enable_element('next_reference_ids')
+                        else:
+                            disable_element('next_reference_ids')
+                    except Exception as e:
+                        print("\nInvalid character found!! Enter only comma-separated numbers")
+                        disable_element('next_reference_ids')
             else:
                 disable_element('next_reference_ids')
 
             last_operation = 'reference_ids'
         elif event == 'next_reference_ids':
-            if reference_ids[0] == 0:
-                reference_ids = [beneficiary['beneficiary_reference_id'] for beneficiary in beneficiaries]
+            beneficiary_ids = list()
+            beneficiary_names = list()
+
+            if reference_ids == 0:
+                for beneficiary in beneficiaries:
+                    beneficiary_ids.append(beneficiary['beneficiary_reference_id'])
+                    beneficiary_names.append(beneficiary['name'])
             else:
-                reference_ids = [beneficiaries[index-1]['beneficiary_reference_id'] for index in reference_ids if 0 < index <= len(beneficiaries)]
+                for index in reference_ids:
+                    beneficiary_ids.append(beneficiaries[index-1]['beneficiary_reference_id'])
+                    beneficiary_names.append(beneficiaries[index-1]['name'])
+            print(f"\nBeneficiaries selected: {', '.join(beneficiary_names)}")
+            reference_ids = beneficiary_ids
+            del beneficiary_ids
             enable_element(['dose_number', 'next_dose_number'], update_others=True)
             show_arrow('arrow_12')
 
@@ -779,6 +779,7 @@ if __name__ == "__main__":
         elif event == 'next_dose_number':
             if values['dose_number'] != '-select-':
                 dose_number = 1 if values['dose_number'] == 'Dose 1' else 2
+                print(f"Dose selected: {dose_number}")
                 enable_element(['min_age_limit', 'next_min_age_limit'], update_others=True)
                 show_arrow('arrow_13')
 
@@ -786,19 +787,27 @@ if __name__ == "__main__":
         elif event == 'next_min_age_limit':
             if values['min_age_limit'] != '-select-':
                 min_age_limit = 18 if values['min_age_limit'] == '18+ Age Group' else 45
-                disable_element(['min_age_limit', 'next_min_age_limit'])
-
-                if is_appointment_date_valid():
-                    show_arrow('')
-                    attempt_to_schedule_appointment()
-                else:
-                    simpleGUI.popup("Kindly choose 'Change appointment date' option and select a valid date "
-                                    "(can be today's date or of the future)", title="Invalid Appointment Date")
-                    enable_element(['y', 'c', 'continue'], update_others=True)
-                    show_arrow('arrow_3')
-                    window['c'].update(value=True)
-                    next_operation = 'change_date_and_schedule_appointment'
+                print(f"Age group selected: {min_age_limit}+")
+                enable_element(['vaccine_preference', 'next_vaccine_preference'], update_others=True)
+                show_arrow('arrow_14')
 
             last_operation = 'next_min_age_limit'
+        elif event == 'next_vaccine_preference':
+            vaccine_preference = '' if values['vaccine_preference'] == '-any-' else 'covaxin' if values['vaccine_preference'] == 'Covaxin' else 'covishield'
+            print(f"Vaccine preference: {'Any' if not vaccine_preference else vaccine_preference.title()}")
+            disable_element(['vaccine_preference', 'next_vaccine_preference'])
+            show_arrow('')
+
+            if cowinAPI.is_appointment_date_valid():
+                attempt_to_schedule_appointment()
+            else:
+                simpleGUI.popup("Kindly choose 'Change appointment date' option and select a valid date "
+                                "(can be today's date or of the future)", title="Invalid Appointment Date")
+                enable_element(['y', 'c', 'continue'], update_others=True)
+                show_arrow('arrow_3')
+                window['c'].update(value=True)
+                next_operation = 'change_date_and_schedule_appointment'
+
+            last_operation = 'next_vaccine_preference'
 
     window.close()

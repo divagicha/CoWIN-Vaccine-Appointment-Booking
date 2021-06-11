@@ -285,9 +285,9 @@ class CoWINAPI:
               f"or 'swami ram, centre name 2', etc.{TextColors.ENDC}")
         input("\nPress 'Enter' to get a list of all available centres in your district and then input your centre preference...")
         self.getCalendarByDistrict(user_config_file)
-        print(f"\n{TextColors.BOLD}Note: The above mentioned values for 'Min Age, Available Capacity and Slots' are for one of the sessions "
-              f"at that centre only. You can still enter a centre's name below as your preference as there might be other sessions as well in "
-              f"the same centre with different 'Min Age, Available Capacity and Slots' value.{TextColors.ENDC}")
+        # print(f"\n{TextColors.BOLD}Note: The above mentioned values for 'Min Age, Available Capacity and Slots' are for one of the sessions "
+        #       f"at that centre only. You can still enter a centre's name below as your preference as there might be other sessions as well in "
+        #       f"the same centre with different 'Min Age, Available Capacity and Slots' value.{TextColors.ENDC}")
         centre_preferences = input(f"\n-->\tEnter short/full centre name for centre preference "
                                    f"{TextColors.WARNING}(comma-separated in case of multiple), CAN BE BLANK AS WELL{TextColors.ENDC}: ")
 
@@ -583,12 +583,13 @@ class CoWINAPI:
                             print(f"\n{TextColors.FAIL}Invalid input!{TextColors.ENDC}")
                 else:
                     centres_list = [
-                        {"Name": centre['name'], "District": centre['district_name'], "Pincode": centre['pincode'],
-                         "Vaccine Name": centre['sessions'][0]['vaccine'],
+                        {"Centre Name": centre['name'], "District": centre['district_name'], "Pincode": centre['pincode'],
+                         "Vaccine Available": "\n".join(sorted(set([session['vaccine'] for session in centre['sessions']]))),
                          "Fee Type": centre['fee_type'],
-                         "Min Age": centre['sessions'][0]['min_age_limit'],
-                         "Available Capacity": f"Dose 1: {centre['sessions'][0]['available_capacity_dose1']}\nDose 2: {centre['sessions'][0]['available_capacity_dose2']}",
-                         "Slots": "\n".join(centre['sessions'][0]['slots'])} for centre in all_centres]
+                         "Accepted Age Groups": ", ".join(sorted(list(map(lambda x: str(x)+'+', set([session['min_age_limit'] for session in centre['sessions']]))))),
+                         # "Available Capacity": f"Dose 1: {centre['sessions'][0]['available_capacity_dose1']}\nDose 2: {centre['sessions'][0]['available_capacity_dose2']}",
+                         # "Slots": "\n".join(centre['sessions'][0]['slots'])
+                         } for centre in all_centres]
 
                     self.display_table(centres_list)
 
@@ -717,8 +718,8 @@ class CoWINAPI:
     #                 time.sleep(1)
 
 
-    def isValidCentre(self, centre, min_age_limit):
-        isValidPincode, isValidInstitute, isValidMinAgeSelected = False, False, False
+    def isValidCentre(self, centre, min_age_limit, vaccine_preference):
+        isValidPincode, isValidInstitute, isValidMinAgeSelected, isValidVaccine = False, False, False, True
 
         if self.search_criteria == 1:
             isValidPincode = True if centre['pincode'] == self.pincode_preferences[0] else False
@@ -735,12 +736,16 @@ class CoWINAPI:
 
         isValidMinAgeSelected = True if centre['min_age_limit'] == min_age_limit else False
 
-        isValidCentre = isValidPincode and isValidInstitute and isValidMinAgeSelected
+        if vaccine_preference:
+            isValidVaccine = True if centre['vaccine'].lower() == vaccine_preference else False
 
+        isValidCentre = isValidPincode and isValidInstitute and isValidMinAgeSelected and isValidVaccine
+
+        # print(f"centre vaccine: {centre['vaccine']}, is vaccine valid? {isValidVaccine}, is centre valid? {isValidCentre}")
         return isValidCentre
 
 
-    def schedule_appointment(self, all_centres, ref_ids, dose_number, min_age_limit, user_config_file, is_app_gui=False):
+    def schedule_appointment(self, all_centres, ref_ids, dose_number, min_age_limit, vaccine_preference, user_config_file, is_app_gui=False):
         appointment_booked_flag = False
         appointment_id = None
 
@@ -750,13 +755,15 @@ class CoWINAPI:
 
         print(f"\nRef. IDs to schedule booking for: {ref_ids}")
 
-        for centre in all_centres:
-            print(f"\ntrying centre '{centre['name']}'\t{TextColors.BOLD}{TextColors.WARNING}(Min Age Limit: {centre['min_age_limit']}){TextColors.ENDC}...", end=" ")
+        total_centres = len(all_centres)
+
+        for idx, centre in enumerate(all_centres):
+            print(f"\n[+] trying centre ({idx+1}/{total_centres}) '{centre['name']}'\n\t{TextColors.BOLD}{TextColors.WARNING}(Vaccine Available: {centre['vaccine']}, Accepted Age Group: {centre['min_age_limit']}+){TextColors.ENDC}...", end=" ")
 
             dummy_centre_check = False
             # dummy_centre_check = 'aiims' in centre['name'].lower()
 
-            if self.isValidCentre(centre, min_age_limit) or dummy_centre_check:
+            if self.isValidCentre(centre, min_age_limit, vaccine_preference) or dummy_centre_check:
                 print(f"{TextColors.BOLD}{TextColors.WARNING}(VALID CENTRE FOUND - Booking Appointment...){TextColors.ENDC}")
                 if centre['available_capacity_dose'+str(dose_number)] >= len(ref_ids):
                     # captcha = self.generate_captcha(user_config_file, is_app_gui)

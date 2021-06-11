@@ -20,11 +20,14 @@ print(f"""
 """)
 
 mobile_number_pattern = re.compile("^[6-9][0-9]{9}$")
+# beneficiary_index_pattern = re.compile("^[1-4]$")
+dose_and_min_age_pattern = re.compile("^[1-2]$")
+vaccine_preference_pattern = re.compile("^[1-3]$")
 
 while True:
     mobile = input("\n-->\tEnter mobile: ")
 
-    if mobile is not None and mobile.strip() != "" and mobile_number_pattern.match(mobile.strip()):
+    if mobile.strip() and mobile_number_pattern.match(mobile.strip()):           # checks for None and empty string value first
         mobile = mobile.strip()
         break
     else:
@@ -109,62 +112,61 @@ print(f"\n{TextColors.BLACKONGREY}Total Beneficiaries Found: {len(beneficiaries)
 while True:
     ids_input = input(f"\nEnter comma-separated index of beneficiaries to schedule appointment for {TextColors.WARNING}(Enter '0' to select all or 'q' to quit and try after sometime){TextColors.ENDC}: ")
 
-    if ids_input is None or ids_input.strip() == "":
-        print(f"\n{TextColors.FAIL}Please enter correct indexes to proceed to booking{TextColors.ENDC}")
+    if not ids_input.strip():           # checks for None and empty string value
+        print(f"\n{TextColors.FAIL}Please enter correct indexes to proceed to booking. This value can't be empty{TextColors.ENDC}")
         continue
-
-    if ids_input.strip().lower() == 'q':
+    elif ids_input.strip().lower() == 'q':
         print("\nExiting program...")
         exit(0)
-
-    reference_ids = ids_input.strip().replace(" ", "").split(",")
-
-    if ids_input.strip().lower() != '0':
+    elif ids_input.strip() == '0':
+        reference_ids = [beneficiary['beneficiary_reference_id'] for beneficiary in beneficiaries]
+        break
+    elif '0' in ids_input.strip() or 'q' in ids_input.strip().lower():
+        print(f"\n{TextColors.FAIL}Please enter correct indexes to proceed to booking. Don't club '0' or 'q' with any other option{TextColors.ENDC}")
+        continue
+    else:
+        reference_ids = ids_input.strip().replace(" ", "").split(",")
+        reference_ids = list(filter(None, reference_ids))                   # to filter out all empty strings
         # beneficiary_index_pattern = re.compile("^[1-4]$")
-        areValidIds = [bool(0 < int(id) <= len(beneficiaries)) for id in reference_ids if id != '']
-        if False in areValidIds:
+        regex_pattern = f"^[1-{len(beneficiaries)}]$"
+        beneficiary_index_pattern = re.compile(regex_pattern)
+        areValidIndexes = [bool(beneficiary_index_pattern.match(index)) for index in reference_ids]
+        if False in areValidIndexes or len(areValidIndexes) == 0:
             print(f"\n{TextColors.FAIL}Please enter correct indexes to proceed to booking{TextColors.ENDC}")
             continue
 
-    if not isinstance(reference_ids[0], int):
-        reference_ids = [int(id) for id in reference_ids if id != '']
-    if reference_ids[0] == 0:
-        reference_ids = [beneficiary['beneficiary_reference_id'] for beneficiary in beneficiaries]
-        break
-    else:
-        # correct_ids_entered_flag = True
-        reference_ids = [id-1 for id in reference_ids if 0 < id <= len(beneficiaries)]
-        reference_ids = [beneficiary['beneficiary_reference_id'] for idx, beneficiary in enumerate(beneficiaries) if idx in reference_ids]
-
-        if len(reference_ids) == 0:
-            print(f"\n{TextColors.FAIL}Please enter correct indexes to proceed to booking{TextColors.ENDC}")
-        else:
-            break
+    reference_ids = list(map(lambda x: int(x)-1, reference_ids))
+    reference_ids = [beneficiaries[index]['beneficiary_reference_id'] for index in reference_ids]
+    break
 
 while True:
     dose_number = input(f"\nEnter dose number for selected beneficiaries {TextColors.WARNING}(SELECT ONE) ['1' for Dose 1, '2' for Dose 2]{TextColors.ENDC}: ")
 
-    if dose_number is not None or dose_number.strip() != "":
+    if dose_number.strip() and dose_and_min_age_pattern.match(dose_number.strip()):           # checks for None and empty string value first
         dose_number = int(dose_number.strip())
-        if dose_number in [1, 2]:
-            break
-        else:
-            print(f"\n{TextColors.FAIL}Invalid input! Please enter one of the above two choices{TextColors.ENDC}")
+        break
     else:
         print(f"\n{TextColors.FAIL}Invalid input! Please enter one of the above two choices{TextColors.ENDC}")
 
 while True:
     min_age_limit = input(f"\nEnter min age limit for selected beneficiaries {TextColors.WARNING}(SELECT ONE) ['1' for 18+, '2' for 45+]{TextColors.ENDC}: ")
 
-    if min_age_limit is not None or min_age_limit.strip() != "":
+    if min_age_limit.strip() and dose_and_min_age_pattern.match(min_age_limit.strip()):           # checks for None and empty string value first
         min_age_limit = int(min_age_limit.strip())
-        if min_age_limit in [1, 2]:
-            min_age_limit = 18 if min_age_limit == 1 else 45
-            break
-        else:
-            print(f"\n{TextColors.FAIL}Invalid input! Please enter one of the above two choices{TextColors.ENDC}")
+        min_age_limit = 18 if min_age_limit == 1 else 45
+        break
     else:
         print(f"\n{TextColors.FAIL}Invalid input! Please enter one of the above two choices{TextColors.ENDC}")
+
+while True:
+    vaccine_preference = input(f"\nEnter vaccine preference for selected beneficiaries {TextColors.WARNING}(SELECT ONE) ['1' for '-ANY-', '2' for 'COVAXIN', '3' for 'COVISHIELD']{TextColors.ENDC}: ")
+
+    if vaccine_preference.strip() and vaccine_preference_pattern.match(vaccine_preference.strip()):           # checks for None and empty string value first
+        vaccine_preference = int(vaccine_preference.strip())
+        vaccine_preference = '' if vaccine_preference == 1 else 'covaxin' if vaccine_preference == 2 else 'covishield'
+        break
+    else:
+        print(f"\n{TextColors.FAIL}Invalid input! Please enter one of the above three choices{TextColors.ENDC}")
 
 print(f"\n-->\tAttempting to book appointment {TextColors.WARNING}(every 3 seconds for next 4 minutes, i.e., total 80 attempts)"
       f"{TextColors.ENDC}")
@@ -228,7 +230,7 @@ while True:
     try:
         if attempts < 80:
             print(f"\n\n{TextColors.UNDERLINE}{TextColors.BOLD}ATTEMPT {attempts+1}:{TextColors.ENDC}")
-            appointment_booked_flag, appointment_id = cowinAPI.schedule_appointment(all_centres, reference_ids, dose_number, min_age_limit, user_config_file)
+            appointment_booked_flag, appointment_id = cowinAPI.schedule_appointment(all_centres, reference_ids, dose_number, min_age_limit, vaccine_preference, user_config_file)
 
             if appointment_booked_flag:
                 break
@@ -236,7 +238,7 @@ while True:
             attempts += 1
             time.sleep(1)
 
-            print(f"\n\n{TextColors.WARNING}[+]{TextColors.ENDC} Updating all_centres list to refresh "
+            print(f"\n\n[+] Updating all_centres list to refresh "
                   f"available_capacity value for each centre before next attempt", flush=True)
             sys.stdout.flush()
             time.sleep(1)

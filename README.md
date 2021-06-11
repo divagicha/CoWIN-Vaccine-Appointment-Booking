@@ -73,6 +73,7 @@ As it's a difficult task to schedule an appointment for CoVid-Vaccine with only 
 8. Beneficiaries *(which beneficiaries to schedule appointment for, among all the registered benficiaries(max. 4) in the account)*
 9. Dose Number *(which dose number (1 or 2) appointment to schedule. Must be same for all the selected beneficiaries)*
 10. Min Age Limit *(minimum age limit of the selected beneficiaries. All selected beneficiaries must belong to the same minimum age group, either 18+ or 45+)*
+11. Vaccine Preference *(vaccine preference for the selected beneficiaries. Once appointment gets scheduled, all selected beneficiaries will receive the selected vaccine. Available options: 'Any', 'Covaxin', 'Covishield')*
 
 
 <a name="screenshots-of-gui-app"></a>
@@ -150,7 +151,7 @@ As it's a difficult task to schedule an appointment for CoVid-Vaccine with only 
 <a name="installation-via-exe-file"></a>
 ### Installation (via EXE file)
 
-1. Navigate to the **'dist'** directory for the setup file or click [here](https://github.com/DivAgicha/CoWIN-Vaccine-Appointment-Booking/raw/master/dist/CovidVaccinationAppointmentScheduler-Setup-v2.2.exe) to download the same for Windows.
+1. Navigate to the **'dist'** directory for the setup file or click [here](https://github.com/DivAgicha/CoWIN-Vaccine-Appointment-Booking/raw/master/dist/CovidVaccinationAppointmentScheduler-Setup-v2.3.exe) to download the same for Windows.
 2. Double-click the installer file and follow the instructions to install the program.
 3. Upon successful installation you will find `Covid Vaccination Appointment Scheduler` folder in your `C:\Program Files (x86)\` directory.
 4. Open the folder and run `schedule_vaccination_appointment.exe` (Console App) or `scheduler_form.exe` (GUI App) file.
@@ -161,8 +162,8 @@ As it's a difficult task to schedule an appointment for CoVid-Vaccine with only 
 ## Important Points to Keep In Mind
 - This is a proof of concept project. I do NOT endorse or condone, in any shape or form, automating any monitoring/booking tasks. **Developed for Educational Purpose; USE IT AT YOUR OWN RISK. I SHOULD NOT BE DEEMED RESPONSIBLE FOR ANY LEGAL CONCERNS.**
 - This goes without saying but, once you get your shot, please do help out any underprivileged people around you who may not have a laptop or the know-how. For instance any sort of domestic help, or the staff in your local grocery store, or literally the thousands of people who don't have the knowledge or luxury we do.
-- If you accidentally book a slot, don't worry. You can always login to the [Official portal](https://selfregistration.cowin.gov.in/) and cancel or re-schedule the booking. There is no option available for rescheduling or cancellation of Booking Slot in the Application. There will be an X symbol on the right-top corner for each beneficiary to cancel from CoWIN Portal.
-- There is no option to register new mobile or add beneficiaries. This can be used only after beneficiary has been added through the Official WebApp of [CoWIN](https://cowin.gov.in/).
+- If you accidentally book a slot, don't worry. You can always login to the [Official portal](https://selfregistration.cowin.gov.in/) and cancel or re-schedule the booking. There is no option available for rescheduling or cancellation of Booking Slot in the Application. There will be an X symbol on the top-right corner for each beneficiary to cancel from CoWIN Portal.
+- There is no option to register new mobile or add beneficiaries. This application can be used only after beneficiary has been added through the Official WebApp of [CoWIN](https://cowin.gov.in/).
 
 
 
