@@ -9,7 +9,7 @@ import platform
 
 # Get OS Type - Windows/Linux
 os_type = platform.system()
-print(os_type)
+#print(os_type)
 
 if os_type == 'Windows':
     #os.system(color xx) only works for MS based systems
