@@ -5,9 +5,16 @@ import sys
 import time
 import datetime as dt
 from CovidVaccineChecker import TextColors, CoWINAPI
+import platform
 
+# Get OS Type - Windows/Linux
+os_type = platform.system()
+print(os_type)
 
-os.system("color 0F")                                   # to get screen colors when running script on shell / CMD
+if os_type == 'Windows':
+    #os.system(color xx) only works for MS based systems
+    os.system("color 0F")                                   # to get screen colors when running script on shell / CMD
+
 
 print(f"""
   .oooooo.             oooooo   oooooo     oooo ooooo ooooo      ooo            .o.       ooooooooo.   ooooo 
