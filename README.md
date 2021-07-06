@@ -47,6 +47,8 @@
 - [Screenshots of GUI App](#screenshots-of-gui-app) ![for windows users only](https://img.shields.io/badge/Operating%20System-Windows-green?style=plastic)
 - [Screenshots of Console App](#screenshots-of-console-app)
 - [Prerequisites](#prerequisites)
+- [Installation Options](#installation)
+	- [Installation (Debian/Ubuntu/Mint)](#installation-for-ubuntu-debian-mint-systems)
 	- [Installation (via ZIP file)](#installation-via-zip-file)
 	- [Installation (via EXE file)](#installation-via-exe-file)	![for windows users only](https://img.shields.io/badge/Operating%20System-Windows-green?style=plastic)
 - [Important Points to Keep In Mind](#important-points-to-keep-in-mind)
@@ -120,9 +122,42 @@ As it's a difficult task to schedule an appointment for CoVid-Vaccine with only 
 
 - **When Installing via EXE File**: No initial setup is needed for installing and running this project via the **EXE file**
 
+- **For Debian/Ubuntu/Mint Based Systems:** You would need python3-tk package installed. To install this package, run the following:
 
+	```sh
+	sudo apt install python3-tk -y
+	```
 
-<!-- INSTALLATION -->
+<!-- INSTALLATION Options-->
+<a name="installation"></a>
+
+## Installation
+<a name="installation-for-ubuntu-debian-mint-systems"></a>
+### Instructions for running the CLI/Console application (Ubuntu/Debian/Mint):
+
+- Run the below to setup your Linux Machine. Below are specific to Ubuntu/Debian/Mint systems: 
+
+	```sh
+	sudo apt install git python3 python3-pip python3-venv -y
+	sudo apt install python3-tk -y
+	cd ~/
+	git clone https://github.com/DivAgicha/CoWIN-Vaccine-Appointment-Booking.git
+	cd ~/CoWIN-Vaccine-Appointment-Booking/
+	```
+- To avoid disturbing your host's python packages, create a virtual env and install the prerequisites:
+
+	```sh
+	cd ~/CoWIN-Vaccine-Appointment-Booking/
+	python3 -m venv ~/CoWIN-Vaccine-Appointment-Booking/
+	source ~/CoWIN-Vaccine-Appointment-Booking/bin/activate
+	pip install -r requirements.txt
+	```
+- To run the CLI/Console application, run the below command:
+
+	```sh
+	python3 schedule_vaccination_appointment.py
+	```
+
 <a name="installation-via-zip-file"></a>
 ### Installation (via ZIP file)
 
@@ -140,16 +175,23 @@ As it's a difficult task to schedule an appointment for CoVid-Vaccine with only 
 	```sh
 	pip install -r requirements.txt
 	```
-6. Run the script **(Console App)** to enter your details and book a vaccination slot
+   **Note:** For Debian/Ubuntu/Mint Based systems, you may need to install python3-tk 
+
 	```sh
-	python schedule_vaccination_appointment.py
+	sudo apt install python3-tk -y
 	```
 
+6. Run the script **(Console App)** to enter your details and book a vaccination slot
+	```sh
+	python3 schedule_vaccination_appointment.py
+	```
 
 
 <!-- INSTALLATION -->
 <a name="installation-via-exe-file"></a>
 ### Installation (via EXE file)
+
+This method is specific for users running Windows Based Systems.
 
 1. Navigate to the **'dist'** directory for the setup file or click [here](https://github.com/DivAgicha/CoWIN-Vaccine-Appointment-Booking/raw/master/dist/CovidVaccinationAppointmentScheduler-Setup-v2.3.exe) to download the same for Windows.
 2. Double-click the installer file and follow the instructions to install the program.
@@ -164,7 +206,7 @@ As it's a difficult task to schedule an appointment for CoVid-Vaccine with only 
 - This goes without saying but, once you get your shot, please do help out any underprivileged people around you who may not have a laptop or the know-how. For instance any sort of domestic help, or the staff in your local grocery store, or literally the thousands of people who don't have the knowledge or luxury we do.
 - If you accidentally book a slot, don't worry. You can always login to the [Official portal](https://selfregistration.cowin.gov.in/) and cancel or re-schedule the booking. There is no option available for rescheduling or cancellation of Booking Slot in the Application. There will be an X symbol on the top-right corner for each beneficiary to cancel from CoWIN Portal.
 - There is no option to register new mobile or add beneficiaries. This application can be used only after beneficiary has been added through the Official WebApp of [CoWIN](https://cowin.gov.in/).
-
+- Please refrain from abusing this tool by any means. Stay Safe.
 
 
 <!-- CONTRIBUTING -->
