@@ -13,6 +13,34 @@ date_now = dt.datetime.today()
 pincode_pattern = re.compile("^[1-9][0-9]{5}$")
 mobile_number_pattern = re.compile("^[6-9][0-9]{9}$")
 # beneficiary_index_pattern = re.compile("^[1-4]$")
+string1 = 'coding'
+
+# opening a text file
+file1 = open("name.txt", "r")
+
+# setting flag and index to 0
+flag = 0
+index = 0
+
+# Loop through the file line by line
+for line in file1:
+	index + = 1
+	
+	# checking string is present in line or not
+	if string1 in line:
+		
+	flag = 1
+	break
+		
+# checking condition for string found or not
+if flag == 0:
+print('String', string1 , 'Not Found')
+else:
+print('String', string1, 'Found In Line', index)
+
+# closing text file	
+file1.close()
+
 
 
 def create_window(finalize=False):
